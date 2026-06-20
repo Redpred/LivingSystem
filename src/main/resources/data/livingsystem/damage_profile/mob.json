@@ -1,0 +1,10 @@
+{
+  "id": "livingsystem:mob",
+  "description_zh_cn": "生物攻击：默认钝性挫伤（具体实体配置后续阶段）",
+  "mechanisms": ["BLUNT"],
+  "trauma_kind": "CONTUSION",
+  "base_severity": 0.3,
+  "structure_weights": { "SOFT_TISSUE": 0.4 },
+  "blood_loss_per_severity": 200.0,
+  "fracture_chance": 0.0
+}

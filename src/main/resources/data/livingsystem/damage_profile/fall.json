@@ -1,0 +1,10 @@
+{
+  "id": "livingsystem:fall",
+  "description_zh_cn": "坠落：钝性挫伤，腿/骨骼为主，严重时骨折",
+  "mechanisms": ["BLUNT"],
+  "trauma_kind": "CONTUSION",
+  "base_severity": 0.3,
+  "structure_weights": { "BONE": 0.4, "SOFT_TISSUE": 0.3 },
+  "blood_loss_per_severity": 150.0,
+  "fracture_chance": 0.2
+}

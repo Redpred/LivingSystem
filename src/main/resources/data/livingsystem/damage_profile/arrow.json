@@ -1,0 +1,10 @@
+{
+  "id": "livingsystem:arrow",
+  "description_zh_cn": "箭矢：穿透伤，软组织与血管，失血较多",
+  "mechanisms": ["PENETRATING"],
+  "trauma_kind": "PENETRATING_WOUND",
+  "base_severity": 0.4,
+  "structure_weights": { "SOFT_TISSUE": 0.4, "VASCULAR": 0.3 },
+  "blood_loss_per_severity": 300.0,
+  "fracture_chance": 0.0
+}

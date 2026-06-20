@@ -1,0 +1,10 @@
+{
+  "id": "livingsystem:anvil",
+  "description_zh_cn": "坠落铁砧/方块：挤压伤，高骨折权重",
+  "mechanisms": ["CRUSH"],
+  "trauma_kind": "CRUSH_INJURY",
+  "base_severity": 0.5,
+  "structure_weights": { "BONE": 0.6, "SOFT_TISSUE": 0.4 },
+  "blood_loss_per_severity": 200.0,
+  "fracture_chance": 0.5
+}
