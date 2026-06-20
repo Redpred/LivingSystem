@@ -1,0 +1,18 @@
+{
+    "itemGroup.livingsystem": "LivingSystem",
+
+    "screen.livingsystem.health": "Health",
+    "screen.livingsystem.health.placeholder": "Health system UI — coming soon",
+    "key.categories.livingsystem": "LivingSystem",
+    "key.livingsystem.open_health": "Open Health Screen",
+
+    "commands.livingsystem.not_implemented": "LivingSystem subcommand %s is not implemented yet (phase 1)",
+
+    "livingsystem.body_region.head_neck": "Head",
+    "livingsystem.body_region.chest": "Chest",
+    "livingsystem.body_region.abdomen": "Abdomen",
+    "livingsystem.body_region.left_arm": "Left Arm",
+    "livingsystem.body_region.right_arm": "Right Arm",
+    "livingsystem.body_region.left_leg": "Left Leg",
+    "livingsystem.body_region.right_leg": "Right Leg"
+}

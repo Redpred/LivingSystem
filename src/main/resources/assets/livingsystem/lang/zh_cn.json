@@ -1,0 +1,18 @@
+{
+    "itemGroup.livingsystem": "生命系统",
+
+    "screen.livingsystem.health": "健康",
+    "screen.livingsystem.health.placeholder": "健康系统界面 — 施工中",
+    "key.categories.livingsystem": "生命系统",
+    "key.livingsystem.open_health": "打开健康界面",
+
+    "commands.livingsystem.not_implemented": "LivingSystem 子命令 %s 尚未实现（阶段一）",
+
+    "livingsystem.body_region.head_neck": "头部",
+    "livingsystem.body_region.chest": "胸腔",
+    "livingsystem.body_region.abdomen": "腹部",
+    "livingsystem.body_region.left_arm": "左臂",
+    "livingsystem.body_region.right_arm": "右臂",
+    "livingsystem.body_region.left_leg": "左腿",
+    "livingsystem.body_region.right_leg": "右腿"
+}
