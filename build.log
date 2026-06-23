@@ -4,15 +4,15 @@ Picked up JAVA_TOOL_OPTIONS: -Duser.language=en -Duser.country=US
 Picked up JAVA_TOOL_OPTIONS: -Duser.language=en -Duser.country=US
 Loaded 125 artifacts from D:\Git\NeoForge_1.21.1\LivingSystem\build\tmp\createMinecraftArtifacts\nfrt_artifact_manifest.properties
 [1m*** Started working on [4mdownloadJson[0m[0m
- [1m[92mDONE [0m Completed [4mdownloadJson[0m in 0.01s
+ [1m[92mDONE [0m Completed [4mdownloadJson[0m in 0.02s
 [1m*** Started working on [4mdownloadServer[0m[0m
-[1m*** Started working on [4mdownloadClientMappings[0m[0m
 [1m*** Started working on [4mdownloadClient[0m[0m
+[1m*** Started working on [4mdownloadClientMappings[0m[0m
 [1m*** Started working on [4mlistLibraries[0m[0m
  [1m[92mREUSE[0m Used cache of [4mlistLibraries[0m in 0.00s
- [1m[92mDONE [0m Completed [4mdownloadClientMappings[0m in 0.02s
- [1m[92mDONE [0m Completed [4mdownloadClient[0m in 0.02s
- [1m[92mDONE [0m Completed [4mdownloadServer[0m in 0.02s
+ [1m[92mDONE [0m Completed [4mdownloadClient[0m in 0.03s
+ [1m[92mDONE [0m Completed [4mdownloadClientMappings[0m in 0.03s
+ [1m[92mDONE [0m Completed [4mdownloadServer[0m in 0.03s
 [1m*** Started working on [4mmergeMappings[0m[0m
  [1m[92mREUSE[0m Used cache of [4mmergeMappings[0m in 0.00s
 [1m*** Started working on [4mstripClient[0m[0m
@@ -43,11 +43,10 @@ Loaded 125 artifacts from D:\Git\NeoForge_1.21.1\LivingSystem\build\tmp\createMi
  [1m[92mREUSE[0m Used cache of [4mcompiledWithNeoForge[0m in 0.00s
 [1m*** Started working on [4msourcesAndCompiledWithNeoForge[0m[0m
  [1m[92mREUSE[0m Used cache of [4msourcesAndCompiledWithNeoForge[0m in 0.00s
-Total runtime: 0.63s
+Total runtime: 0.80s
 
 
 > Task :compileJava
-Picked up JAVA_TOOL_OPTIONS: -Duser.language=en -Duser.country=US
 
-BUILD SUCCESSFUL in 4s
+BUILD SUCCESSFUL in 3s
 2 actionable tasks: 2 executed

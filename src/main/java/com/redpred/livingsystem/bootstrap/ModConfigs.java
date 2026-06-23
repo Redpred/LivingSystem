@@ -24,6 +24,14 @@ public final class ModConfigs {
     public static final ModConfigSpec.DoubleValue MAX_BLOOD_VOLUME;
     /** 不可维持血量比例：当前血量低于 最大血量×该比例 即进入致死条件，见开发文档 §7.1。 */
     public static final ModConfigSpec.DoubleValue UNSURVIVABLE_BLOOD_FRACTION;
+    /** 全局疼痛强度倍率，见开发文档 §3 全局倍率（疼痛强度倍率）。 */
+    public static final ModConfigSpec.DoubleValue PAIN_INTENSITY_MULTIPLIER;
+    /** 全局骨折生成概率倍率，见开发文档 §3.3 骨折参数与 §3.4 概率链。 */
+    public static final ModConfigSpec.DoubleValue FRACTURE_CHANCE_MULTIPLIER;
+    /** 调试期：把关键健康事件输出到玩家聊天框。 */
+    public static final ModConfigSpec.BooleanValue DEBUG_CHAT;
+    /** 调试期：放开 /livingsystem 命令权限（无需 OP/作弊即可执行，含切换创造）。 */
+    public static final ModConfigSpec.BooleanValue DEBUG_COMMANDS;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -40,6 +48,18 @@ public final class ModConfigs {
         UNSURVIVABLE_BLOOD_FRACTION = builder
                 .comment("不可维持血量比例：当前血量低于 最大×该值 即满足失血致死条件。")
                 .defineInRange("unsurvivableBloodFraction", 0.15, 0.0, 1.0);
+        PAIN_INTENSITY_MULTIPLIER = builder
+                .comment("全局疼痛强度倍率：放大或削弱所有伤势汇总出的总疼痛，进而影响疼痛相关症状与操作惩罚。")
+                .defineInRange("painIntensityMultiplier", 1.0, 0.0, 10.0);
+        FRACTURE_CHANCE_MULTIPLIER = builder
+                .comment("全局骨折生成概率倍率：作用于伤害画像的基础骨折概率，最终概率夹取在 0~1。")
+                .defineInRange("fractureChanceMultiplier", 1.0, 0.0, 10.0);
+        DEBUG_CHAT = builder
+                .comment("调试期：把命中/失血/死亡等关键事件输出到玩家聊天框，便于观察。发布前应关闭。")
+                .define("debugChat", true);
+        DEBUG_COMMANDS = builder
+                .comment("调试期：放开 /livingsystem 命令权限，无需 OP 或开作弊即可执行（含 creative/survival 切换）。发布前应关闭。")
+                .define("debugCommands", true);
         SERVER_SPEC = builder.build();
     }
 

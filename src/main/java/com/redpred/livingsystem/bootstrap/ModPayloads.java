@@ -11,6 +11,7 @@ import com.redpred.livingsystem.network.payload.MedicalObservationPayload;
 import com.redpred.livingsystem.network.payload.OpenHealthScreenRequest;
 import com.redpred.livingsystem.network.payload.RulesSummaryPayload;
 import com.redpred.livingsystem.network.payload.StartTreatmentRequest;
+import com.redpred.livingsystem.network.payload.SyncGameplayPayload;
 import com.redpred.livingsystem.network.payload.TreatmentProgressPayload;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -60,5 +61,7 @@ public final class ModPayloads {
                 ClientPayloadReceiver::onDeathReport);
         registrar.playToClient(RulesSummaryPayload.TYPE, RulesSummaryPayload.STREAM_CODEC,
                 ClientPayloadReceiver::onRulesSummary);
+        registrar.playToClient(SyncGameplayPayload.TYPE, SyncGameplayPayload.STREAM_CODEC,
+                ClientPayloadReceiver::onGameplay);
     }
 }

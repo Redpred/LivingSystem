@@ -7,6 +7,7 @@ import com.redpred.livingsystem.network.payload.HealthScreenSnapshotPayload;
 import com.redpred.livingsystem.network.payload.HudSummaryPayload;
 import com.redpred.livingsystem.network.payload.MedicalObservationPayload;
 import com.redpred.livingsystem.network.payload.RulesSummaryPayload;
+import com.redpred.livingsystem.network.payload.SyncGameplayPayload;
 import com.redpred.livingsystem.network.payload.TreatmentProgressPayload;
 import net.minecraft.client.Minecraft;
 
@@ -41,6 +42,10 @@ public final class ClientHooks {
 
     public static void applyRulesSummary(RulesSummaryPayload payload) {
         ClientHealthState.setRulesSummary(payload);
+    }
+
+    public static void applyGameplay(SyncGameplayPayload payload) {
+        ClientHealthState.setGameplay(payload);
     }
 
     /** 打开健康主界面。 */

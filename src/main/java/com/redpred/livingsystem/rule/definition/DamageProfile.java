@@ -24,6 +24,7 @@ import java.util.Map;
  * @param bloodLossPerSeverity 每点严重度造成的急性失血量（毫升）
  * @param fractureChance      触发骨折的基础概率
  * @param concussionChance    头部触发脑震荡的基础概率
+ * @param painPerSeverity     每点严重度固化的基础疼痛（0~1，见开发文档 §3.3 基础疼痛）
  */
 public record DamageProfile(
         ResourceLocation id,
@@ -35,7 +36,8 @@ public record DamageProfile(
         Map<AnatomicalStructure, Float> structureWeights,
         float bloodLossPerSeverity,
         float fractureChance,
-        float concussionChance
+        float concussionChance,
+        float painPerSeverity
 ) implements RuleDefinition {
 
     public static final Codec<DamageProfile> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -51,6 +53,7 @@ public record DamageProfile(
                     .optionalFieldOf("structure_weights", Map.of()).forGetter(DamageProfile::structureWeights),
             Codec.FLOAT.optionalFieldOf("blood_loss_per_severity", 200.0F).forGetter(DamageProfile::bloodLossPerSeverity),
             Codec.FLOAT.optionalFieldOf("fracture_chance", 0.0F).forGetter(DamageProfile::fractureChance),
-            Codec.FLOAT.optionalFieldOf("concussion_chance", 0.0F).forGetter(DamageProfile::concussionChance)
+            Codec.FLOAT.optionalFieldOf("concussion_chance", 0.0F).forGetter(DamageProfile::concussionChance),
+            Codec.FLOAT.optionalFieldOf("pain_per_severity", 0.6F).forGetter(DamageProfile::painPerSeverity)
     ).apply(instance, DamageProfile::new));
 }

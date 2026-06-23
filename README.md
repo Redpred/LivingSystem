@@ -1,101 +1,76 @@
-# LivingSystem
+# LivingSystem（生命系统）
 
-A Minecraft mod for **NeoForge 1.21.1** (Java 21).
+面向 **NeoForge 1.21.1 / Java 21** 的 Minecraft 模组。参考《逃离塔科夫》《僵尸毁灭工程》等游戏，
+为玩家提供一套**服务端权威、数据驱动**的分部位健康系统：分部位受击、机械创伤、出血、疼痛、骨折、
+全身生理循环、症状与游戏性输出，并替换原版生命/饥饿/回血/溺水语义。
 
-中文名「生命系统」：为玩家提供一套类塔科夫（Tarkov-like）的分部位生命健康系统。
+> 完整功能与架构规格见 [`LivingSystem_开发文档.md`](LivingSystem_开发文档.md)（唯一主规格）。
+> 本文件只做总览与上手说明。
 
-## 生命系统功能（已实现 v1）
+## 架构总览
 
-- **6 个身体部位**：头部、躯体、左臂、右臂、左腿、右腿，各自有独立生命值
-  （`com.livingsystem.body.BodyPart`）。
-- **分部位受击**：受到伤害时按伤害来源的几何位置定位命中部位
-  （弓箭等抛射物用弹体落点，爆炸用爆心；近战暂用按轮廓面积加权随机）。见
-  `BodyPartLocator`。
-- **分部位反应**：某部位生命值归零时触发对应负面效果（头→致盲+反胃，臂→挖掘疲劳，
-  腿→缓慢，躯干→虚弱）。见 `event/CombatEventHandler`。
-- **健康栏界面**：原版背包上方新增标签栏，第一栏为原版背包、第二栏为健康栏；
-  按 **H** 键也可直接打开。左上角四分之一区域用 6 个方块绘制小人，颜色按各部位
-  健康度（绿→黄→红）显示，悬停显示具体数值；右半部列出各部位数值条。
-- **按键绑定**：H 键已注册到 设置 → 按键绑定 的「生命系统」分类下，可自由改键。
-- **数据存储与同步**：部位生命值用 NeoForge 数据附件（`ModAttachments.PLAYER_HEALTH`）
-  存档，并通过 `SyncBodyHealthPayload` 同步到客户端供界面渲染。
-
-> 设计说明：v1 中原版血量保持不变，部位生命值作为**平行系统**追踪，便于先跑通整套
-> 链路。后续迭代计划把原版血量整体替换为部位驱动（含死亡/出血/回血等）。
-
-## 默认操作
-
-| 操作 | 默认键 |
-| --- | --- |
-| 打开健康栏 | H（可在按键设置中修改） |
-| 关闭健康栏 | Esc / E（背包键） |
-| 在背包/健康栏之间切换 | 点击界面上方标签 |
-
-## 项目结构
+包根 `com.redpred.livingsystem`，按开发文档第二部分（§18–34）分层：
 
 ```
-LivingSystem/
-├── build.gradle                 # ModDevGradle (MDG) 构建脚本
-├── settings.gradle              # Gradle 设置与插件仓库
-├── gradle.properties            # 版本号 / 模组元数据（在这里改 MC、NeoForge 版本）
-├── gradlew / gradlew.bat        # Gradle Wrapper 启动脚本
-├── gradle/wrapper/
-│   ├── gradle-wrapper.properties
-│   └── gradle-wrapper.jar       # ⚠️ 需补充（见下方说明）
-└── src/main/
-    ├── java/com/livingsystem/
-    │   ├── LivingSystem.java     # 主类（@Mod 入口）
-    │   ├── Config.java           # 配置（ModConfigSpec）
-    │   └── registry/
-    │       ├── ModItems.java         # 物品注册
-    │       ├── ModBlocks.java        # 方块注册（含 BlockItem）
-    │       └── ModCreativeTabs.java  # 创造模式物品栏
-    ├── templates/META-INF/
-    │   └── neoforge.mods.toml    # 模组描述（构建时替换占位符）
-    └── resources/
-        ├── pack.mcmeta
-        ├── assets/livingsystem/
-        │   ├── lang/{en_us,zh_cn}.json
-        │   ├── models/{item,block}/example_*.json
-        │   └── blockstates/example_block.json
-        └── data/livingsystem/loot_table/blocks/example_block.json
+com.redpred.livingsystem
+├─ bootstrap     注册：注册表 / 附件 / 数据组件 / 网络包 / 配置 / 内容
+├─ api           对外兼容 API（damage/exposure/protection/treatment/examination/event）
+├─ domain        领域模型：body / effect / physiology / symptom / treatment / recovery /
+│                exposure / protection / medication / death（运行时可变状态 + 不可变 DTO）
+├─ service       业务服务（接口 + Default 实现）：damage / hit / structure / physiology /
+│                symptom / treatment / recovery / exposure / protection / examination /
+│                resource / death / feature / scheduling
+├─ rule          规则数据：definition / registry / codec / validation / reload / snapshot
+├─ persistence   持久化：repository / migrator（玩家健康数据附件）
+├─ network       网络：payload / handler / snapshot（StreamCodec + 协议版本 + 服务端校验）
+├─ compatibility 兼容：vanilla（伤害拦截/资源桥接）/ adapter
+├─ client        仅客户端：state / screen / hud / animation / sound / key / config
+├─ content       物品 / 方块 / 方块实体 / 菜单
+└─ command       /livingsystem 调试命令族
 ```
 
-## ⚠️ 缺一个二进制文件：gradle-wrapper.jar
+服务端是健康状态、伤势、治疗、死亡的唯一权威来源；客户端只接收只读快照用于 HUD、界面与表现。
+公共/服务端代码不引用 `net.minecraft.client`，开屏等客户端入口经 `client.ClientHooks` 惰性隔离。
 
-由于当前环境无法生成二进制文件，`gradle/wrapper/gradle-wrapper.jar` 还没有。
-用以下任一方式补齐后即可构建：
+## 开发进度
 
-1. **用 IntelliJ IDEA 打开项目**（推荐）：选择 "Open"，IDEA 会自动按 `gradle-wrapper.properties`
-   下载 Gradle 8.10.2 并补全 wrapper。
-2. **已装 Gradle 时**，在项目根目录执行：
-   ```
-   gradle wrapper --gradle-version 8.10.2
-   ```
-3. 从任意已有的 Gradle 8.10.2 项目复制 `gradle/wrapper/gradle-wrapper.jar` 过来。
+- **阶段一（代码架构）**：完成。完整分层骨架、领域模型、服务接口与默认实现、规则快照、持久化、
+  网络、客户端、命令均已建立，可启动客户端/专用服务端/数据生成。
+- **阶段二（资源桥接与机械创伤闭环）**：完成。
+  - 机械创伤：`LivingIncomingDamageEvent` 最低优先级拦截并清零原版伤害与减伤；
+    命中部位解析（`HitLocationService`）→ 创伤生成（`HealthEffectFactory`）→ 结构损伤
+    （`StructureDamageService`）→ 急性失血写入聚合根。
+  - 出血动态：`PhysiologyEngine` 逐周期处理外/内出血、凝血（动脉更难凝）、凝块稳定与再出血。
+  - 疼痛：创伤固化基础疼痛 → 循环平滑更新当前疼痛 → 汇总总疼痛（含全局倍率与镇痛扣减）→
+    `pain`/`tremor` 症状 → 操作稳定度、镜头摇晃、移动/攻速惩罚。
+  - 骨折：按伤害画像骨折概率（×全局倍率）做确定性判定，固化骨折等级/不稳定/移位并追加骨结构损伤 →
+    `limp`/加重 `arm_impairment` → 移动/疾跑/跳跃/手部稳定惩罚。
+  - 全身资源与呼吸：体力（活动消耗/休息恢复）、呼吸储备（缺氧消耗/出水恢复）、氧债与意识；
+    溺水屏蔽（原版溺水不再扣血，呼吸由 `respiratoryReserve` 自管理），缺氧终末死亡。
+  - 资源桥接与 HUD：原版生命/饥饿/空气钉哨兵、关闭自然回血；HUD 文字显示血液/体力/水分/呼吸；
+    症状汇总为统一 `GameplayEffectSnapshot` 并经属性修饰器与客户端快照应用。基础死亡流程（失血/
+    要害结构归零/缺氧终末 → 专用致死来源）闭环。
+- **阶段三及以后**：治疗/恢复/医疗信息、环境/防护、毒素/病原体/辐射/魔法、医疗设备/生产/兼容、
+  平衡与发布。对应服务多为接口骨架，待逐步填充。
 
 ## 常用命令
 
 ```
-./gradlew build           # 打包模组 jar（输出在 build/libs/）
+./gradlew compileJava     # 编译（验证用）
+./gradlew build           # 打包模组 jar（输出 build/libs/）
 ./gradlew runClient       # 启动开发客户端
-./gradlew runServer       # 启动开发服务端
-./gradlew runData         # 运行数据生成（输出到 src/generated/resources）
+./gradlew runServer       # 启动开发专用服务端
+./gradlew runData         # 运行数据生成
 ```
 
-## 缺少的贴图
+> Windows 下编译建议设 `JAVA_TOOL_OPTIONS=-Duser.language=en -Duser.country=US` 以规避编码问题。
 
-`example_item` / `example_block` 引用了贴图但还没有 PNG，需自行添加：
-- `src/main/resources/assets/livingsystem/textures/item/example_item.png`
-- `src/main/resources/assets/livingsystem/textures/block/example_block.png`
+## 调试
 
-在补齐贴图前，物品/方块会显示为紫黑方块（缺失贴图），但不影响加载和运行。
+服务端配置 `debugChat`（默认开）会把命中/失血/骨折/死亡等关键事件输出到聊天框；
+`debugCommands`（默认开）放开 `/livingsystem` 命令权限便于测试。发布前应关闭二者。
 
-## 改版本
+## 版本
 
-所有版本集中在 `gradle.properties`：`minecraft_version`、`neo_version`、`parchment_*`。
-最新可用的 NeoForge 1.21.1 版本可在 https://projects.neoforged.net/neoforged/neoforge 查询。
-
-构建插件用的是 **ModDevGradle (MDG)**，在 `build.gradle` 的 `plugins {}` 块里：
-`id 'net.neoforged.moddev' version '2.0.78'`。若该版本无法解析（或想用更新版），
-到 https://projects.neoforged.net/neoforged/ModDevGradle 查最新版本号，改这一行即可。
+版本集中在 `gradle.properties`（`minecraft_version`、`neo_version`、`parchment_*`）。
+构建插件为 ModDevGradle（`build.gradle` 的 `plugins {}`）。

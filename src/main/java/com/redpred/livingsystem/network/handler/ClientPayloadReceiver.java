@@ -6,6 +6,7 @@ import com.redpred.livingsystem.network.payload.HealthScreenSnapshotPayload;
 import com.redpred.livingsystem.network.payload.HudSummaryPayload;
 import com.redpred.livingsystem.network.payload.MedicalObservationPayload;
 import com.redpred.livingsystem.network.payload.RulesSummaryPayload;
+import com.redpred.livingsystem.network.payload.SyncGameplayPayload;
 import com.redpred.livingsystem.network.payload.TreatmentProgressPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -43,5 +44,9 @@ public final class ClientPayloadReceiver {
 
     public static void onRulesSummary(RulesSummaryPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> ClientHooks.applyRulesSummary(payload));
+    }
+
+    public static void onGameplay(SyncGameplayPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> ClientHooks.applyGameplay(payload));
     }
 }

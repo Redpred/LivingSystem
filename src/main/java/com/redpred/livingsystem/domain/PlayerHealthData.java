@@ -2,14 +2,17 @@ package com.redpred.livingsystem.domain;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.redpred.livingsystem.domain.body.AnatomicalStructure;
 import com.redpred.livingsystem.domain.body.BodyRegion;
 import com.redpred.livingsystem.domain.body.BodyRegionState;
+import com.redpred.livingsystem.domain.body.StructureState;
 import com.redpred.livingsystem.domain.death.DeathReportSnapshot;
 import com.redpred.livingsystem.domain.effect.HealthEffectInstance;
 import com.redpred.livingsystem.domain.examination.MedicalObservationSnapshot;
 import com.redpred.livingsystem.domain.exposure.ExposureAccumulator;
 import com.redpred.livingsystem.domain.medication.MedicationEffectInstance;
 import com.redpred.livingsystem.domain.physiology.PhysiologyState;
+import com.redpred.livingsystem.domain.symptom.GameplayEffectSnapshot;
 import com.redpred.livingsystem.domain.treatment.AppliedTreatmentState;
 import com.redpred.livingsystem.domain.treatment.TreatmentSession;
 import net.minecraft.resources.ResourceLocation;
@@ -19,52 +22,50 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * 玩家健康数据的唯一聚合根（见开发文档 §20、§17 全局不变量 1）。
  *
- * <p>禁止为血液、器官、伤势、症状、药物和治疗分别注册多个玩家附件——玩家只保存这一个聚合根。
- * 本类持有全部权威运行时状态字段。</p>
- *
- * <p><b>阶段一持久化范围：</b>{@link #CODEC} 目前仅序列化版本字段；{@link PhysiologyState}、各身体部位
- * 结构状态与活动健康影响集合等的完整（含多态健康影响）序列化将在后续阶段经 {@code persistence.codec}
- * 实现并配套 {@code schemaVersion} 升级与迁移器。当前阶段无实际健康数据产生，运行时聚合默认即可。</p>
+ * <p>本类持有全部权威运行时状态字段。<b>阶段二 2.1 持久化范围：</b>{@link #CODEC} 序列化版本字段、
+ * 全身生理状态与各部位结构完整度（既成损伤）；活动健康影响（伤势）、专用结构状态（extra）等的完整
+ * 序列化随后续子里程碑接入 {@code persistence.codec}。</p>
  */
 public final class PlayerHealthData {
 
     /** 当前持久化结构版本。 */
     public static final int CURRENT_SCHEMA_VERSION = 1;
 
-    /** 持久化与读取使用的 Codec（阶段一仅版本字段）。 */
+    private static final Codec<BodyRegion> BODY_REGION_CODEC =
+            Codec.STRING.xmap(BodyRegion::valueOf, Enum::name);
+    private static final Codec<AnatomicalStructure> STRUCTURE_CODEC =
+            Codec.STRING.xmap(AnatomicalStructure::valueOf, Enum::name);
+    private static final Codec<Map<BodyRegion, Map<AnatomicalStructure, Float>>> REGIONS_CODEC =
+            Codec.unboundedMap(BODY_REGION_CODEC, Codec.unboundedMap(STRUCTURE_CODEC, Codec.FLOAT));
+
     public static final Codec<PlayerHealthData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.optionalFieldOf("schemaVersion", CURRENT_SCHEMA_VERSION).forGetter(PlayerHealthData::getSchemaVersion),
-            Codec.LONG.optionalFieldOf("rulesVersion", 0L).forGetter(PlayerHealthData::getRulesVersion)
-    ).apply(instance, PlayerHealthData::new));
+            Codec.LONG.optionalFieldOf("rulesVersion", 0L).forGetter(PlayerHealthData::getRulesVersion),
+            PhysiologyState.CODEC.optionalFieldOf("physiology").forGetter(data -> Optional.of(data.physiology)),
+            REGIONS_CODEC.optionalFieldOf("body_regions", Map.of()).forGetter(PlayerHealthData::structureIntegrityMap)
+    ).apply(instance, PlayerHealthData::fromCodec));
 
     private int schemaVersion;
     private long rulesVersion;
 
-    /** 全身权威生理状态。 */
     private final PhysiologyState physiology = new PhysiologyState();
-    /** 七个身体部位的结构状态。 */
     private final EnumMap<BodyRegion, BodyRegionState> bodyRegions = new EnumMap<>(BodyRegion.class);
-    /** 全部活动健康影响。 */
     private final Map<UUID, HealthEffectInstance> activeEffects = new HashMap<>();
-    /** 已应用治疗。 */
     private final Map<UUID, AppliedTreatmentState> appliedTreatments = new HashMap<>();
-    /** 当前药物剂量实例。 */
     private final List<MedicationEffectInstance> medications = new ArrayList<>();
-    /** 环境暴露累积器。 */
     private final Map<ResourceLocation, ExposureAccumulator> exposureAccumulators = new HashMap<>();
-    /** 活动治疗会话。 */
     private final Map<UUID, TreatmentSession> treatmentSessions = new HashMap<>();
-    /** 有限数量的医疗检查结果。 */
     private final List<MedicalObservationSnapshot> observations = new ArrayList<>();
-    /** 有限数量的死亡报告。 */
     private final List<DeathReportSnapshot> deathReports = new ArrayList<>();
-    /** 运行时脏标记，不持久化。 */
     private final transient HealthDirtyFlags dirtyFlags = new HealthDirtyFlags();
+    /** 最近一次汇总的游戏性输出（派生、瞬态，不持久化）。 */
+    private transient GameplayEffectSnapshot gameplay = GameplayEffectSnapshot.NEUTRAL;
 
     public PlayerHealthData() {
         this(CURRENT_SCHEMA_VERSION, 0L);
@@ -78,12 +79,42 @@ public final class PlayerHealthData {
         }
     }
 
-    /**
-     * 拷贝构造。阶段一仅保留版本，运行时聚合（生理/伤势/治疗等）重置为默认；完整克隆与重生/维度切换
-     * 策略在后续阶段实现。
-     */
     public PlayerHealthData(PlayerHealthData other) {
         this(other.schemaVersion, other.rulesVersion);
+        this.physiology.copyFrom(other.physiology);
+        other.bodyRegions.forEach((region, state) ->
+                state.getStructures().forEach((structure, ss) ->
+                        bodyRegions.get(region).getOrCreateStructure(structure).setIntegrity(ss.getIntegrity())));
+    }
+
+    /** Codec 工厂：用既有默认实例承接版本/生理/结构完整度；其余运行时聚合保持默认。 */
+    private static PlayerHealthData fromCodec(int schemaVersion, long rulesVersion,
+                                              Optional<PhysiologyState> physiology,
+                                              Map<BodyRegion, Map<AnatomicalStructure, Float>> regions) {
+        PlayerHealthData data = new PlayerHealthData(schemaVersion, rulesVersion);
+        physiology.ifPresent(p -> data.physiology.copyFrom(p));
+        regions.forEach((region, structs) -> {
+            BodyRegionState regionState = data.bodyRegions.get(region);
+            if (regionState != null) {
+                structs.forEach((structure, integrity) ->
+                        regionState.getOrCreateStructure(structure).setIntegrity(integrity));
+            }
+        });
+        return data;
+    }
+
+    /** 导出各部位已存在结构的完整度，供持久化。 */
+    private Map<BodyRegion, Map<AnatomicalStructure, Float>> structureIntegrityMap() {
+        Map<BodyRegion, Map<AnatomicalStructure, Float>> out = new EnumMap<>(BodyRegion.class);
+        for (Map.Entry<BodyRegion, BodyRegionState> entry : bodyRegions.entrySet()) {
+            EnumMap<AnatomicalStructure, StructureState> structs = entry.getValue().getStructures();
+            if (!structs.isEmpty()) {
+                Map<AnatomicalStructure, Float> map = new EnumMap<>(AnatomicalStructure.class);
+                structs.forEach((structure, state) -> map.put(structure, state.getIntegrity()));
+                out.put(entry.getKey(), map);
+            }
+        }
+        return out;
     }
 
     public int getSchemaVersion() { return schemaVersion; }
@@ -101,4 +132,7 @@ public final class PlayerHealthData {
     public List<MedicalObservationSnapshot> observations() { return observations; }
     public List<DeathReportSnapshot> deathReports() { return deathReports; }
     public HealthDirtyFlags dirtyFlags() { return dirtyFlags; }
+
+    public GameplayEffectSnapshot gameplay() { return gameplay; }
+    public void setGameplay(GameplayEffectSnapshot gameplay) { this.gameplay = gameplay; }
 }
