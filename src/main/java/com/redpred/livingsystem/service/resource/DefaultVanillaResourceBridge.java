@@ -46,7 +46,13 @@ public final class DefaultVanillaResourceBridge implements VanillaResourceBridge
     public void handleIncoming(ServerPlayer player, DamageContext context) {
         PlayerHealthData data = LivingServices.REPOSITORY.get(player);
         HitLocationResult location = LivingServices.HIT_LOCATION.resolve(context);
-        List<HealthEffectInstance> effects = LivingServices.HEALTH_EFFECT.create(context, location);
+
+        // 先计算一次 LivingSystem 专用防护（穿戴护甲），供伤势工厂减免穿透/结构/伤口（见 §11.8）。
+        List<net.minecraft.world.item.ItemStack> armor = new java.util.ArrayList<>();
+        player.getArmorSlots().forEach(armor::add);
+        com.redpred.livingsystem.domain.protection.ProtectionResult protection =
+                LivingServices.PROTECTION.resolveTraumaProtection(context, location.region().orElse(null), armor);
+        List<HealthEffectInstance> effects = LivingServices.HEALTH_EFFECT.create(context, location, protection);
 
         DamageProfile profile = DamageProfileReloadListener.get(context.source().getMsgId());
         float bloodPerSeverity = profile != null ? profile.bloodLossPerSeverity() : 200.0F;

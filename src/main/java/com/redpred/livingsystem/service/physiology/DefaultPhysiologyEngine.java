@@ -77,7 +77,20 @@ public final class DefaultPhysiologyEngine implements PhysiologyEngine {
         }
 
         updateRespiration(player, physiology, interval);
+        updateMetabolism(physiology, activity, interval);
         updateStaminaAndConsciousness(physiology, activity, interval);
+    }
+
+    /**
+     * 基础代谢：水分、营养与代谢能量随时间缓慢消耗，活动加速消耗。靠摄入物补充（见 {@code ConsumableEffectService}）。
+     * 阶段三不致死（脱水/饥饿致死属阶段五代谢系统）；资源耗尽只限制体力恢复。
+     */
+    private static void updateMetabolism(PhysiologyState p, ActivitySnapshot activity, int interval) {
+        float perMinute = interval / 1200.0F;
+        float activityMul = (activity.sprinting() || activity.swimming()) ? 2.0F : (activity.walking() ? 1.3F : 1.0F);
+        p.setHydration(Math.max(0.0F, p.getHydration() - 8.0F * perMinute * activityMul));
+        p.setNutrition(Math.max(0.0F, p.getNutrition() - 5.0F * perMinute * activityMul));
+        p.setMetabolicEnergy(Math.max(0.0F, p.getMetabolicEnergy() - 10.0F * perMinute * activityMul));
     }
 
     /**
@@ -121,7 +134,7 @@ public final class DefaultPhysiologyEngine implements PhysiologyEngine {
         }
         if (drain > 0.0F) {
             stamina -= drain * perSecond;
-        } else if (!activity.walking()) {
+        } else if (!activity.walking() && physiology.getMetabolicEnergy() > 0.0F && physiology.getHydration() > 0.0F) {
             stamina += 3.0F * perSecond;
         }
         physiology.setCurrentStamina(Mth.clamp(stamina, 0.0F, physiology.getMaxStamina()));

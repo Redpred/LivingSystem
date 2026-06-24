@@ -8,6 +8,7 @@ import com.redpred.livingsystem.domain.body.BodyRegionState;
 import com.redpred.livingsystem.domain.body.StructureState;
 import com.redpred.livingsystem.domain.death.DeathReportSnapshot;
 import com.redpred.livingsystem.domain.effect.HealthEffectInstance;
+import com.redpred.livingsystem.domain.effect.TraumaInjuryState;
 import com.redpred.livingsystem.domain.examination.MedicalObservationSnapshot;
 import com.redpred.livingsystem.domain.exposure.ExposureAccumulator;
 import com.redpred.livingsystem.domain.medication.MedicationEffectInstance;
@@ -48,7 +49,9 @@ public final class PlayerHealthData {
             Codec.INT.optionalFieldOf("schemaVersion", CURRENT_SCHEMA_VERSION).forGetter(PlayerHealthData::getSchemaVersion),
             Codec.LONG.optionalFieldOf("rulesVersion", 0L).forGetter(PlayerHealthData::getRulesVersion),
             PhysiologyState.CODEC.optionalFieldOf("physiology").forGetter(data -> Optional.of(data.physiology)),
-            REGIONS_CODEC.optionalFieldOf("body_regions", Map.of()).forGetter(PlayerHealthData::structureIntegrityMap)
+            REGIONS_CODEC.optionalFieldOf("body_regions", Map.of()).forGetter(PlayerHealthData::structureIntegrityMap),
+            TraumaInjuryState.CODEC.listOf().optionalFieldOf("active_traumas", List.of())
+                    .forGetter(PlayerHealthData::activeTraumaList)
     ).apply(instance, PlayerHealthData::fromCodec));
 
     private int schemaVersion;
@@ -90,7 +93,8 @@ public final class PlayerHealthData {
     /** Codec 工厂：用既有默认实例承接版本/生理/结构完整度；其余运行时聚合保持默认。 */
     private static PlayerHealthData fromCodec(int schemaVersion, long rulesVersion,
                                               Optional<PhysiologyState> physiology,
-                                              Map<BodyRegion, Map<AnatomicalStructure, Float>> regions) {
+                                              Map<BodyRegion, Map<AnatomicalStructure, Float>> regions,
+                                              List<TraumaInjuryState> traumas) {
         PlayerHealthData data = new PlayerHealthData(schemaVersion, rulesVersion);
         physiology.ifPresent(p -> data.physiology.copyFrom(p));
         regions.forEach((region, structs) -> {
@@ -100,7 +104,25 @@ public final class PlayerHealthData {
                         regionState.getOrCreateStructure(structure).setIntegrity(integrity));
             }
         });
+        for (TraumaInjuryState trauma : traumas) {
+            data.activeEffects.put(trauma.id(), trauma);
+            BodyRegionState regionState = data.bodyRegions.get(trauma.getBodyRegion());
+            if (regionState != null) {
+                regionState.getActiveEffectIds().add(trauma.id());
+            }
+        }
         return data;
+    }
+
+    /** 导出当前活动的机械创伤列表，供持久化（其它健康影响类型在对应系统接入时扩展为分发 Codec）。 */
+    private List<TraumaInjuryState> activeTraumaList() {
+        List<TraumaInjuryState> list = new ArrayList<>();
+        for (HealthEffectInstance effect : activeEffects.values()) {
+            if (effect instanceof TraumaInjuryState trauma) {
+                list.add(trauma);
+            }
+        }
+        return list;
     }
 
     /** 导出各部位已存在结构的完整度，供持久化。 */

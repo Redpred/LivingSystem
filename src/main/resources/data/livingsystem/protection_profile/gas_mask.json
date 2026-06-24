@@ -1,0 +1,8 @@
+{
+  "id": "livingsystem:gas_mask",
+  "description_zh_cn": "防毒面具：密封过滤，大幅降低呼吸类环境暴露",
+  "items": ["livingsystem:gas_mask"],
+  "covered_regions": ["HEAD_NECK"],
+  "respiratory_filtration": 0.9,
+  "radiation_shielding": 0.1
+}

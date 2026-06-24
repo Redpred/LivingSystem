@@ -1,0 +1,16 @@
+{
+  "id": "livingsystem:bandage",
+  "description_zh_cn": "绷带：覆盖伤口、轻度止血并促进凝血",
+  "target_type": "INJURY_INSTANCE",
+  "purpose": "STABILIZATION",
+  "slot": "WOUND_COVER",
+  "commit_policy": "STAGED",
+  "duration_ticks": 40,
+  "requires_stationary": true,
+  "allow_self_treatment": true,
+  "applicable_trauma_kinds": ["ABRASION", "CUT_WOUND", "PUNCTURE_WOUND", "PENETRATING_WOUND", "BALLISTIC_WOUND"],
+  "operations": [
+    { "type": "REDUCE_EXTERNAL_BLEEDING", "amount": 0.5 },
+    { "type": "INCREASE_CLOT_PROGRESS", "amount": 0.3 }
+  ]
+}

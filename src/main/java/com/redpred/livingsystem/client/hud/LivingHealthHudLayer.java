@@ -32,5 +32,24 @@ public final class LivingHealthHudLayer implements LayeredDraw.Layer {
         String text = String.format("血液 %.0f/20   体力 %.0f/20   水分 %.0f/20   呼吸 %.0f/20",
                 hud.blood(), hud.stamina(), hud.hydration(), hud.respiratory());
         guiGraphics.drawString(minecraft.font, text, 8, guiGraphics.guiHeight() - 20, 0xFFFFFFFF);
+
+        renderTreatmentProgress(guiGraphics, minecraft);
+    }
+
+    /** 治疗进行中时在屏幕下方居中绘制进度条。 */
+    private void renderTreatmentProgress(GuiGraphics guiGraphics, Minecraft minecraft) {
+        var progress = ClientHealthState.getTreatmentProgress();
+        if (progress == null || progress.interrupted() || progress.progress() >= 1.0F) {
+            return;
+        }
+        int width = guiGraphics.guiWidth();
+        int barWidth = 100;
+        int x = (width - barWidth) / 2;
+        int y = guiGraphics.guiHeight() - 50;
+        int filled = (int) (barWidth * Math.max(0.0F, Math.min(1.0F, progress.progress())));
+        guiGraphics.fill(x - 1, y - 1, x + barWidth + 1, y + 5, 0xFF000000);
+        guiGraphics.fill(x, y, x + filled, y + 4, 0xFF33CC44);
+        String label = String.format("治疗中 %d%%", (int) (progress.progress() * 100));
+        guiGraphics.drawCenteredString(minecraft.font, label, width / 2, y - 10, 0xFFFFFFFF);
     }
 }

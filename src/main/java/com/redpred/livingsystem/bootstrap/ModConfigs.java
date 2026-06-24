@@ -28,6 +28,12 @@ public final class ModConfigs {
     public static final ModConfigSpec.DoubleValue PAIN_INTENSITY_MULTIPLIER;
     /** 全局骨折生成概率倍率，见开发文档 §3.3 骨折参数与 §3.4 概率链。 */
     public static final ModConfigSpec.DoubleValue FRACTURE_CHANCE_MULTIPLIER;
+    /** 体温系统开关：关闭后环境不再改变核心体温、不产生体温症状。 */
+    public static final ModConfigSpec.BooleanValue TEMPERATURE_SYSTEM_ENABLED;
+    /** 舒适环境温度（摄氏度）：核心体温在该环境下趋向 37℃。 */
+    public static final ModConfigSpec.DoubleValue COMFORT_TEMPERATURE;
+    /** 核心体温向环境目标趋近的速率（每生理周期比例，0~1）。 */
+    public static final ModConfigSpec.DoubleValue TEMPERATURE_CHANGE_RATE;
     /** 调试期：把关键健康事件输出到玩家聊天框。 */
     public static final ModConfigSpec.BooleanValue DEBUG_CHAT;
     /** 调试期：放开 /livingsystem 命令权限（无需 OP/作弊即可执行，含切换创造）。 */
@@ -54,6 +60,15 @@ public final class ModConfigs {
         FRACTURE_CHANCE_MULTIPLIER = builder
                 .comment("全局骨折生成概率倍率：作用于伤害画像的基础骨折概率，最终概率夹取在 0~1。")
                 .defineInRange("fractureChanceMultiplier", 1.0, 0.0, 10.0);
+        TEMPERATURE_SYSTEM_ENABLED = builder
+                .comment("体温系统开关：关闭后环境不再改变核心体温，也不产生发热/寒战等体温症状。")
+                .define("temperatureSystemEnabled", true);
+        COMFORT_TEMPERATURE = builder
+                .comment("舒适环境温度（摄氏度）：处于该环境温度时核心体温趋向正常 37℃。")
+                .defineInRange("comfortTemperature", 20.0, -50.0, 60.0);
+        TEMPERATURE_CHANGE_RATE = builder
+                .comment("核心体温向环境目标趋近的速率（每生理周期比例）。值越大体温变化越快。")
+                .defineInRange("temperatureChangeRate", 0.05, 0.0, 1.0);
         DEBUG_CHAT = builder
                 .comment("调试期：把命中/失血/死亡等关键事件输出到玩家聊天框，便于观察。发布前应关闭。")
                 .define("debugChat", true);

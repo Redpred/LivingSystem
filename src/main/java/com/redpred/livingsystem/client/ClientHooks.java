@@ -26,6 +26,10 @@ public final class ClientHooks {
 
     public static void applyHealthScreenSnapshot(HealthScreenSnapshotPayload payload) {
         ClientHealthState.setHealthScreen(payload);
+        Minecraft minecraft = Minecraft.getInstance();
+        if (!(minecraft.screen instanceof HealthScreen)) {
+            minecraft.setScreen(new HealthScreen());
+        }
     }
 
     public static void applyTreatmentProgress(TreatmentProgressPayload payload) {

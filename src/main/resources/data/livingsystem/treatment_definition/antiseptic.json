@@ -1,0 +1,15 @@
+{
+  "id": "livingsystem:antiseptic",
+  "description_zh_cn": "消毒剂：清洁伤口、降低污染",
+  "target_type": "INJURY_INSTANCE",
+  "purpose": "CAUSAL",
+  "slot": "WOUND_COVER",
+  "commit_policy": "PROPORTIONAL",
+  "duration_ticks": 50,
+  "requires_stationary": true,
+  "allow_self_treatment": true,
+  "applicable_trauma_kinds": [],
+  "operations": [
+    { "type": "REDUCE_CONTAMINATION", "amount": 0.8 }
+  ]
+}

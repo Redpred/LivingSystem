@@ -1,0 +1,16 @@
+{
+  "id": "livingsystem:splint",
+  "description_zh_cn": "夹板：稳定骨折、降低不稳定与移位",
+  "target_type": "INJURY_INSTANCE",
+  "purpose": "STABILIZATION",
+  "slot": "FRACTURE_STABILIZATION",
+  "commit_policy": "ON_COMPLETE",
+  "duration_ticks": 80,
+  "requires_stationary": true,
+  "allow_self_treatment": true,
+  "applicable_trauma_kinds": ["FRACTURE", "CRUSH_INJURY", "CONTUSION"],
+  "operations": [
+    { "type": "STABILIZE_FRACTURE", "amount": 0.8 },
+    { "type": "REDUCE_FRACTURE_DISPLACEMENT", "amount": 0.6 }
+  ]
+}

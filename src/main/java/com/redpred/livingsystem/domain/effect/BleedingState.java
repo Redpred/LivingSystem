@@ -1,12 +1,29 @@
 package com.redpred.livingsystem.domain.effect;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.redpred.livingsystem.domain.body.VesselClass;
+import com.redpred.livingsystem.rule.codec.EnumCodecs;
 
 /**
  * 出血组件状态。出血速率属于具体伤势，不属于身体部位或血管结构；{@code baseExternalRate} 与
  * {@code baseInternalRate} 在创建时固化，不得在每次循环中被覆写（见开发文档 §5.6）。
  */
 public final class BleedingState {
+
+    /** 持久化 Codec。 */
+    public static final Codec<BleedingState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.FLOAT.optionalFieldOf("base_external_rate", 0.0F).forGetter(BleedingState::getBaseExternalRate),
+            Codec.FLOAT.optionalFieldOf("base_internal_rate", 0.0F).forGetter(BleedingState::getBaseInternalRate),
+            EnumCodecs.of(VesselClass.class).optionalFieldOf("vessel_class", VesselClass.CAPILLARY)
+                    .forGetter(BleedingState::getVesselClass),
+            Codec.FLOAT.optionalFieldOf("clot_progress", 0.0F).forGetter(BleedingState::getClotProgress),
+            Codec.FLOAT.optionalFieldOf("clot_stability", 0.0F).forGetter(BleedingState::getClotStability),
+            Codec.FLOAT.optionalFieldOf("rebleed_risk", 0.0F).forGetter(BleedingState::getRebleedRisk),
+            Codec.BOOL.optionalFieldOf("arterial_pattern", false).forGetter(BleedingState::isArterialPattern),
+            Codec.BOOL.optionalFieldOf("currently_bleeding", false).forGetter(BleedingState::isCurrentlyBleeding)
+    ).apply(instance, BleedingState::fromCodec));
+
     /** 基础外出血速率（毫升/分钟）。 */
     private float baseExternalRate;
     /** 基础内出血速率（毫升/分钟）。 */
@@ -25,6 +42,21 @@ public final class BleedingState {
     private boolean currentlyBleeding;
 
     public BleedingState() {
+    }
+
+    private static BleedingState fromCodec(float baseExternalRate, float baseInternalRate, VesselClass vesselClass,
+                                           float clotProgress, float clotStability, float rebleedRisk,
+                                           boolean arterialPattern, boolean currentlyBleeding) {
+        BleedingState state = new BleedingState();
+        state.baseExternalRate = baseExternalRate;
+        state.baseInternalRate = baseInternalRate;
+        state.vesselClass = vesselClass;
+        state.clotProgress = clotProgress;
+        state.clotStability = clotStability;
+        state.rebleedRisk = rebleedRisk;
+        state.arterialPattern = arterialPattern;
+        state.currentlyBleeding = currentlyBleeding;
+        return state;
     }
 
     public float getBaseExternalRate() {

@@ -10,6 +10,7 @@ import com.redpred.livingsystem.domain.effect.FractureState;
 import com.redpred.livingsystem.domain.effect.HealthEffectInstance;
 import com.redpred.livingsystem.domain.effect.TraumaInjuryState;
 import com.redpred.livingsystem.domain.effect.TraumaKind;
+import com.redpred.livingsystem.domain.protection.ProtectionResult;
 import com.redpred.livingsystem.rule.definition.DamageProfile;
 import com.redpred.livingsystem.service.context.DamageContext;
 import com.redpred.livingsystem.service.hit.HitLocationResult;
@@ -30,7 +31,7 @@ import java.util.UUID;
 public final class DefaultHealthEffectFactory implements HealthEffectFactory {
 
     @Override
-    public List<HealthEffectInstance> create(DamageContext context, HitLocationResult location) {
+    public List<HealthEffectInstance> create(DamageContext context, HitLocationResult location, ProtectionResult protection) {
         if (location.region().isEmpty()) {
             return List.of();
         }
@@ -44,13 +45,17 @@ public final class DefaultHealthEffectFactory implements HealthEffectFactory {
                 ? profile.structureWeights()
                 : Map.of(AnatomicalStructure.SOFT_TISSUE, 0.4F);
 
-        float severity = Mth.clamp(base + context.amount() * 0.05F, 0.0F, 1.0F);
+        // 防护减免：穿透抗性降低整体严重度。
+        float severity = Mth.clamp((base + context.amount() * 0.05F) * protection.penetrationMultiplier(), 0.0F, 1.0F);
 
         TraumaInjuryState trauma = new TraumaInjuryState(
                 UUID.randomUUID(), context.sourceEventId(), CauseSnapshot.UNKNOWN, region, kind, context.gameTime());
         trauma.setSeverity(severity);
         trauma.setDepth(severity);
-        weights.forEach((structure, weight) -> trauma.getStructureDamage().put(structure, severity * weight));
+        // 结构损伤再经结构防护减免。
+        float structureMul = protection.structureDamageMultiplier();
+        weights.forEach((structure, weight) ->
+                trauma.getStructureDamage().put(structure, severity * weight * structureMul));
 
         // 基础疼痛随严重度固化（创建时写入实例，不受后续定义修改影响，见 §12.1）；当前疼痛初值取基础疼痛，
         // 后续由活动加重、炎症与镇痛在生理循环中动态调整。
@@ -67,9 +72,10 @@ public final class DefaultHealthEffectFactory implements HealthEffectFactory {
         bleeding.setRebleedRisk(arterial ? 0.4F : 0.15F);
         bleeding.setCurrentlyBleeding(severity > 0.05F);
 
-        // 骨折判定（确定性随机，种子复用同一伤害事件，见 §5.6）：最终概率 = 画像骨折概率 × 全局倍率，夹取 0~1。
+        // 骨折判定（确定性随机，种子复用同一伤害事件，见 §5.6）：最终概率 = 画像骨折概率 × 全局倍率 × 防护伤口减免，夹取 0~1。
         float fractureChance = profile != null ? profile.fractureChance() : 0.0F;
-        fractureChance = Mth.clamp(fractureChance * ModConfigs.FRACTURE_CHANCE_MULTIPLIER.get().floatValue(), 0.0F, 1.0F);
+        fractureChance = Mth.clamp(fractureChance * ModConfigs.FRACTURE_CHANCE_MULTIPLIER.get().floatValue()
+                * protection.affectedAreaMultiplier(), 0.0F, 1.0F);
         if (fractureChance > 0.0F) {
             // 用 sourceEventId 低位与命中判定（用高位）区分通道，避免同一事件不同阶段随机相关。
             RandomSource random = RandomSource.create(context.sourceEventId().getLeastSignificantBits() ^ context.gameTime());

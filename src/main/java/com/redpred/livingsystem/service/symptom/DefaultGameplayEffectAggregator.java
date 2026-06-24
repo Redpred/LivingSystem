@@ -11,7 +11,8 @@ import net.minecraft.util.Mth;
  * <p>把症状强度汇总为唯一的游戏性输出并统一夹取上下限：失血性虚弱降低移动/攻速并加重镜头摇晃与心跳；
  * 腿部障碍大幅降低移动、重度时降低跳跃力并禁用疾跑；跛行（骨折）显著降低移动并禁用疾跑；
  * 臂部障碍降低攻速与挖掘速度并影响主手稳定；
- * 疼痛降低操作稳定度与镜头摇晃，高疼痛引发的颤抖进一步加重手部不稳与摇晃。</p>
+ * 疼痛降低操作稳定度与镜头摇晃，高疼痛引发的颤抖进一步加重手部不稳与摇晃；
+ * 寒战降低移动与操作稳定并加重摇晃，发热造成乏力（移动/攻速轻微下降）；昏迷则全面锁定操作。</p>
  */
 public final class DefaultGameplayEffectAggregator implements GameplayEffectAggregator {
 
@@ -27,6 +28,7 @@ public final class DefaultGameplayEffectAggregator implements GameplayEffectAggr
         boolean jump = true;
         float sway = 0.0F;
         float heartbeat = 0.0F;
+        boolean unconscious = false;
 
         for (SymptomState s : symptoms.symptoms()) {
             float i = s.intensity();
@@ -73,6 +75,27 @@ public final class DefaultGameplayEffectAggregator implements GameplayEffectAggr
                     offHandStability *= 1.0F - 0.4F * i;
                     sway += 0.4F * i;
                 }
+                case "unconsciousness" -> {
+                    // 昏迷：大幅压制移动与攻击并禁用疾跑/跳跃；强度足够时置 unconscious 锁定。
+                    move *= 1.0F - 0.9F * i;
+                    attackSpeed *= 1.0F - 0.9F * i;
+                    sprint = false;
+                    jump = false;
+                    if (i >= 0.5F) {
+                        unconscious = true;
+                    }
+                }
+                case "chills" -> {
+                    // 寒战：发抖导致移动下降、操作不稳与镜头摇晃。
+                    move *= 1.0F - 0.25F * i;
+                    mainHandStability *= 1.0F - 0.3F * i;
+                    sway += 0.2F * i;
+                }
+                case "fever" -> {
+                    // 发热：虚弱乏力，移动与攻速轻微下降。
+                    move *= 1.0F - 0.2F * i;
+                    attackSpeed *= 1.0F - 0.2F * i;
+                }
                 default -> {
                 }
             }
@@ -92,6 +115,6 @@ public final class DefaultGameplayEffectAggregator implements GameplayEffectAggr
                 0.0F,
                 0.0F,
                 Mth.clamp(heartbeat, 0.0F, 1.0F),
-                false);
+                unconscious);
     }
 }

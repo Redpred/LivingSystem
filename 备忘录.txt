@@ -1,0 +1,22 @@
+里程碑 3.2 编译通过 ✅。
+
+阶段三已完成核心治疗闭环（3.1 + 3.2）：
+
+3.1 治疗定义数据驱动 + 基础医疗物品
+
+TreatmentDefinition 扩展为完整数据模型（目标类型/目的/槽位/提交策略/时长/静止要求/自疗许可/适用创伤/预注册操作列表 Operation）。
+新建 RulesSnapshotBuilder 统一协调多个 reload listener 装配同一份快照；DamageProfileReloadListener 改用它，新增 TreatmentDefinitionReloadListener。
+注册 6 个基础医疗物品（绷带/止血纱布/止血带/夹板/缝合包/消毒剂）+ 对应治疗定义 JSON + 中英文 lang。
+3.2 局部单伤口治疗运行时闭环
+
+TreatmentService 重构为可驱动接口；DefaultTreatmentService 实现：校验（定义启用/自疗许可/同槽位并发）、自动选取最相关最严重的目标创伤、逐刻推进、按 commitPolicy（ON_COMPLETE/PROPORTIONAL/STAGED）把预注册操作施加到出血/凝血/污染/骨折组件、静止中断、完成记录 AppliedTreatmentState。
+治疗效果经 BleedingState/FractureState/ContaminationState 反馈给生理循环，形成闭环。
+右键医疗物品发起自疗（服务端权威，消耗物品）；网络 StartTreatment/CancelTreatment 入口实现（含队友距离/手持物品校验）；治疗每刻推进接入 tick；HUD 绘制治疗进度条。
+LivingServices 注册 TREATMENT 单例。
+阶段三剩余子里程碑：
+
+3.3 药物 + 摄入物（止痛药→镇痛衰减接回疼痛汇总；食物→补充代谢能量/营养/水分，接回阶段二资源）
+3.4 自然恢复 + 活动恶化（RecoveryEngine：伤口愈合/结构修复/资源恢复；负重再损伤）
+3.5 医疗检查 + 健康主界面（MedicalExaminationService 按信息分级；HealthScreen 完整页签）
+3.6 昏迷 + 死亡报告（ConsciousnessService 昏迷锁定；DeathReportService 报告生成与展示）
+一个需要提醒的技术债：PlayerHealthData 目前只持久化生理状态与结构完整度，伤势（activeEffects）与治疗会话尚未序列化，重登录会丢失。治疗/恢复体验完整化需要补这块（HealthEffectInstance 的持久化 DTO + Codec），是个独立工作项。

@@ -8,6 +8,7 @@ import com.redpred.livingsystem.domain.physiology.ActivitySnapshot;
 import com.redpred.livingsystem.domain.physiology.PhysiologyState;
 import com.redpred.livingsystem.domain.symptom.GameplayEffectSnapshot;
 import com.redpred.livingsystem.domain.symptom.SymptomSnapshot;
+import com.redpred.livingsystem.network.payload.DeathReportPayload;
 import com.redpred.livingsystem.network.payload.HudSummaryPayload;
 import com.redpred.livingsystem.network.payload.SyncGameplayPayload;
 import com.redpred.livingsystem.service.LivingServices;
@@ -84,21 +85,28 @@ public final class VanillaDamageInterceptor {
         if (!(event.getEntity() instanceof ServerPlayer player) || player.isCreative() || player.isSpectator()) {
             return;
         }
-        if (player.tickCount % ModConfigs.TICK_INTERVAL.get() != 0) {
-            return;
-        }
         VanillaResourceBridge bridge = LivingServices.VANILLA_BRIDGE;
         if (bridge.isHandlingDeath(player)) {
             return;
         }
         PlayerHealthData data = LivingServices.REPOSITORY.get(player);
+        // 治疗会话按每刻推进（进度、提交与中断需逐刻判定）。
+        LivingServices.TREATMENT.tickSessions(player, data);
+        if (player.tickCount % ModConfigs.TICK_INTERVAL.get() != 0) {
+            return;
+        }
         LivingServices.PHYSIOLOGY.runCycle(player, data, sampleActivity(player));
+        LivingServices.EXPOSURE_SAMPLER.sample(player);
+        LivingServices.MEDICATION.tick(player, data);
+        LivingServices.RECOVERY.tick(player, data);
 
         if (LivingServices.DEATH.shouldDie(player, data)) {
-            if (ModConfigs.DEBUG_CHAT.get()) {
-                player.displayClientMessage(Component.literal("§c[LS] 死亡：失血或要害失能"), false);
-            }
-            LivingServices.DEATH_REPORT.buildReport(player, data).ifPresent(report -> data.deathReports().add(report));
+            LivingServices.DEATH_REPORT.buildReport(player, data).ifPresent(report -> {
+                data.deathReports().add(report);
+                String cause = report.timeline().isEmpty() ? "生理崩溃" : report.timeline().get(0).descriptionZhCn();
+                player.displayClientMessage(Component.literal("§c[生命系统] " + cause), false);
+                PacketDistributor.sendToPlayer(player, new DeathReportPayload(report.reportId()));
+            });
             bridge.beginDeathHandling(player);
             player.hurt(player.damageSources().genericKill(), Float.MAX_VALUE);
             bridge.endDeathHandling(player);

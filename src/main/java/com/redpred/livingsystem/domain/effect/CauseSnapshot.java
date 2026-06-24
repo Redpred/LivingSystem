@@ -1,5 +1,8 @@
 package com.redpred.livingsystem.domain.effect;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
@@ -27,6 +30,16 @@ public record CauseSnapshot(
         Optional<UUID> directEntityId,
         Optional<UUID> causingEntityId
 ) {
+    /** 持久化 Codec。 */
+    public static final Codec<CauseSnapshot> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ResourceLocation.CODEC.optionalFieldOf("damage_type_id").forGetter(CauseSnapshot::damageTypeId),
+            ResourceLocation.CODEC.optionalFieldOf("direct_entity_type").forGetter(CauseSnapshot::directEntityType),
+            ResourceLocation.CODEC.optionalFieldOf("causing_entity_type").forGetter(CauseSnapshot::causingEntityType),
+            ResourceLocation.CODEC.optionalFieldOf("source_item_id").forGetter(CauseSnapshot::sourceItemId),
+            UUIDUtil.CODEC.optionalFieldOf("direct_entity_id").forGetter(CauseSnapshot::directEntityId),
+            UUIDUtil.CODEC.optionalFieldOf("causing_entity_id").forGetter(CauseSnapshot::causingEntityId)
+    ).apply(instance, CauseSnapshot::new));
+
     /** 无法识别来源时使用的空快照。 */
     public static final CauseSnapshot UNKNOWN = new CauseSnapshot(
             Optional.empty(), Optional.empty(), Optional.empty(),

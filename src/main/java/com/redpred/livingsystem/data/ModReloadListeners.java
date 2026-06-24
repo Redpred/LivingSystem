@@ -17,5 +17,8 @@ public final class ModReloadListeners {
     @SubscribeEvent
     public static void onAddReloadListener(AddReloadListenerEvent event) {
         event.addListener(new DamageProfileReloadListener());
+        event.addListener(new TreatmentDefinitionReloadListener());
+        event.addListener(new EnvironmentalHazardReloadListener());
+        event.addListener(new ProtectionProfileReloadListener());
     }
 }

@@ -1,0 +1,11 @@
+{
+  "id": "livingsystem:leather_insulation",
+  "description_zh_cn": "皮革护甲：提供保暖隔热，减轻寒冷环境对体温的影响",
+  "items": [
+    "minecraft:leather_helmet",
+    "minecraft:leather_chestplate",
+    "minecraft:leather_leggings",
+    "minecraft:leather_boots"
+  ],
+  "thermal_insulation": 0.25
+}

@@ -14,5 +14,15 @@
     "livingsystem.body_region.left_arm": "Left Arm",
     "livingsystem.body_region.right_arm": "Right Arm",
     "livingsystem.body_region.left_leg": "Left Leg",
-    "livingsystem.body_region.right_leg": "Right Leg"
+    "livingsystem.body_region.right_leg": "Right Leg",
+
+    "item.livingsystem.medical_supply": "Medical Supply",
+    "item.livingsystem.bandage": "Bandage",
+    "item.livingsystem.hemostatic_gauze": "Hemostatic Gauze",
+    "item.livingsystem.tourniquet": "Tourniquet",
+    "item.livingsystem.splint": "Splint",
+    "item.livingsystem.suture_kit": "Suture Kit",
+    "item.livingsystem.antiseptic": "Antiseptic",
+    "item.livingsystem.painkiller": "Painkiller",
+    "item.livingsystem.gas_mask": "Gas Mask"
 }

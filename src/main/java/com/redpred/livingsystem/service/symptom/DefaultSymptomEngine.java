@@ -65,6 +65,20 @@ public final class DefaultSymptomEngine implements SymptomEngine {
             symptoms.add(symptom("tremor", Mth.clamp((totalPain - 0.6F) / 0.4F, 0.0F, 1.0F), Optional.empty()));
         }
 
+        // 意识低下 → 昏迷症状（强度随意识降低上升），驱动游戏性输出的 unconscious 锁定。
+        float consciousness = p.getConsciousness();
+        if (consciousness < 0.3F) {
+            symptoms.add(symptom("unconsciousness", Mth.clamp((0.3F - consciousness) / 0.3F, 0.0F, 1.0F), Optional.empty()));
+        }
+
+        // 体温异常 → 发热（>38.5℃）或寒战（<35.5℃），强度随偏离扩大。
+        float coreTemp = p.getCoreTemperature();
+        if (coreTemp > 38.5F) {
+            symptoms.add(symptom("fever", Mth.clamp((coreTemp - 38.5F) / 3.0F, 0.0F, 1.0F), Optional.empty()));
+        } else if (coreTemp < 35.5F) {
+            symptoms.add(symptom("chills", Mth.clamp((35.5F - coreTemp) / 5.0F, 0.0F, 1.0F), Optional.empty()));
+        }
+
         return new SymptomSnapshot(List.copyOf(symptoms), 0L);
     }
 

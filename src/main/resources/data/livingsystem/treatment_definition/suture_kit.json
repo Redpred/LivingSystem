@@ -1,0 +1,16 @@
+{
+  "id": "livingsystem:suture_kit",
+  "description_zh_cn": "缝合包：闭合开放伤口，显著降低再出血",
+  "target_type": "INJURY_INSTANCE",
+  "purpose": "CAUSAL",
+  "slot": "WOUND_CLOSURE",
+  "commit_policy": "ON_COMPLETE",
+  "duration_ticks": 100,
+  "requires_stationary": true,
+  "allow_self_treatment": true,
+  "applicable_trauma_kinds": ["CUT_WOUND", "PENETRATING_WOUND", "BALLISTIC_WOUND"],
+  "operations": [
+    { "type": "APPLY_WOUND_CLOSURE", "amount": 1.0 },
+    { "type": "REDUCE_EXTERNAL_BLEEDING", "amount": 0.7 }
+  ]
+}

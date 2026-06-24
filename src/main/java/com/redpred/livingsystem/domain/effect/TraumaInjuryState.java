@@ -1,12 +1,17 @@
 package com.redpred.livingsystem.domain.effect;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.redpred.livingsystem.domain.body.AnatomicalStructure;
 import com.redpred.livingsystem.domain.body.BodyRegion;
 import com.redpred.livingsystem.domain.treatment.AppliedTreatmentState;
+import com.redpred.livingsystem.rule.codec.EnumCodecs;
+import net.minecraft.core.UUIDUtil;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -18,6 +23,40 @@ import java.util.UUID;
  * 因为 §13.15 为更具体的强制要求）。</p>
  */
 public final class TraumaInjuryState implements HealthEffectInstance {
+
+    /** 创伤的六个可变组件集合（仅用于持久化分组，规避顶层 Codec 字段上限）。 */
+    public record Components(BleedingState bleeding, FractureState fracture, ForeignBodyState foreignBody,
+                             ContaminationState contamination, PainState pain, HealingState healing) {
+        public static final Codec<Components> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                BleedingState.CODEC.fieldOf("bleeding").forGetter(Components::bleeding),
+                FractureState.CODEC.fieldOf("fracture").forGetter(Components::fracture),
+                ForeignBodyState.CODEC.fieldOf("foreign_body").forGetter(Components::foreignBody),
+                ContaminationState.CODEC.fieldOf("contamination").forGetter(Components::contamination),
+                PainState.CODEC.fieldOf("pain").forGetter(Components::pain),
+                HealingState.CODEC.fieldOf("healing").forGetter(Components::healing)
+        ).apply(instance, Components::new));
+    }
+
+    /** 持久化 Codec（六个组件经 {@link Components} 分组）。运行时引用（实体/伤害源）不持久化，仅存其标识快照。 */
+    public static final Codec<TraumaInjuryState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            UUIDUtil.CODEC.fieldOf("id").forGetter(TraumaInjuryState::id),
+            UUIDUtil.CODEC.fieldOf("source_event_id").forGetter(TraumaInjuryState::sourceEventId),
+            CauseSnapshot.CODEC.optionalFieldOf("cause", CauseSnapshot.UNKNOWN).forGetter(TraumaInjuryState::cause),
+            EnumCodecs.of(BodyRegion.class).fieldOf("body_region").forGetter(TraumaInjuryState::getBodyRegion),
+            EnumCodecs.of(TraumaKind.class).fieldOf("trauma_kind").forGetter(TraumaInjuryState::getTraumaKind),
+            Codec.FLOAT.optionalFieldOf("severity", 0.0F).forGetter(TraumaInjuryState::severity),
+            Codec.FLOAT.optionalFieldOf("depth", 0.0F).forGetter(TraumaInjuryState::getDepth),
+            Codec.FLOAT.optionalFieldOf("affected_area", 0.0F).forGetter(TraumaInjuryState::getAffectedArea),
+            Codec.unboundedMap(EnumCodecs.of(AnatomicalStructure.class), Codec.FLOAT)
+                    .optionalFieldOf("structure_damage", Map.of()).forGetter(t -> t.getStructureDamage()),
+            Components.CODEC.fieldOf("components").forGetter(TraumaInjuryState::components),
+            AppliedTreatmentState.CODEC.listOf().optionalFieldOf("applied_treatments", List.of())
+                    .forGetter(TraumaInjuryState::getAppliedTreatments),
+            Codec.LONG.fieldOf("created_game_time").forGetter(TraumaInjuryState::createdGameTime),
+            Codec.LONG.optionalFieldOf("last_updated_game_time", 0L).forGetter(TraumaInjuryState::lastUpdatedGameTime),
+            Codec.BOOL.optionalFieldOf("active", true).forGetter(TraumaInjuryState::active)
+    ).apply(instance, TraumaInjuryState::fromCodec));
+
     private final UUID id;
     private final UUID sourceEventId;
     private CauseSnapshot cause;
@@ -196,5 +235,33 @@ public final class TraumaInjuryState implements HealthEffectInstance {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    /** 组装六个组件为持久化分组。 */
+    public Components components() {
+        return new Components(bleeding, fracture, foreignBody, contamination, pain, healing);
+    }
+
+    /** Codec 工厂：重建创伤实例并填充全部字段与组件。 */
+    private static TraumaInjuryState fromCodec(UUID id, UUID sourceEventId, CauseSnapshot cause, BodyRegion region,
+                                               TraumaKind kind, float severity, float depth, float affectedArea,
+                                               Map<AnatomicalStructure, Float> structureDamage, Components components,
+                                               List<AppliedTreatmentState> appliedTreatments, long createdGameTime,
+                                               long lastUpdatedGameTime, boolean active) {
+        TraumaInjuryState t = new TraumaInjuryState(id, sourceEventId, cause, region, kind, createdGameTime);
+        t.severity = severity;
+        t.depth = depth;
+        t.affectedArea = affectedArea;
+        t.structureDamage.putAll(structureDamage);
+        t.bleeding = components.bleeding();
+        t.fracture = components.fracture();
+        t.foreignBody = components.foreignBody();
+        t.contamination = components.contamination();
+        t.pain = components.pain();
+        t.healing = components.healing();
+        t.appliedTreatments.addAll(appliedTreatments);
+        t.lastUpdatedGameTime = lastUpdatedGameTime;
+        t.active = active;
+        return t;
     }
 }

@@ -1,0 +1,8 @@
+{
+  "id": "livingsystem:smoke_inhalation",
+  "description_zh_cn": "站在火/灵魂火方块中：吸入烟雾，损害呼吸",
+  "category": "RESPIRATORY",
+  "trigger": "CONTACT",
+  "intensity": 0.5,
+  "blocks": ["minecraft:fire", "minecraft:soul_fire"]
+}

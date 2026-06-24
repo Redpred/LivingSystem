@@ -1,10 +1,23 @@
 package com.redpred.livingsystem.domain.effect;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 /**
  * 骨折组件状态，附着于创伤伤势。结构层 {@code BoneState} 描述部位骨骼整体情况，本组件描述
  * 该具体伤势造成的骨折细节。
  */
 public final class FractureState {
+
+    /** 持久化 Codec。 */
+    public static final Codec<FractureState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.INT.optionalFieldOf("grade", 0).forGetter(FractureState::getGrade),
+            Codec.FLOAT.optionalFieldOf("instability", 0.0F).forGetter(FractureState::getInstability),
+            Codec.BOOL.optionalFieldOf("displaced", false).forGetter(FractureState::isDisplaced),
+            Codec.FLOAT.optionalFieldOf("splint_stability", 0.0F).forGetter(FractureState::getSplintStability),
+            Codec.BOOL.optionalFieldOf("reduced", false).forGetter(FractureState::isReduced)
+    ).apply(instance, FractureState::fromCodec));
+
     /** 骨折等级，0 表示无骨折。 */
     private int grade;
     /** 不稳定程度，0.0～1.0。 */
@@ -17,6 +30,17 @@ public final class FractureState {
     private boolean reduced;
 
     public FractureState() {
+    }
+
+    private static FractureState fromCodec(int grade, float instability, boolean displaced,
+                                           float splintStability, boolean reduced) {
+        FractureState state = new FractureState();
+        state.grade = grade;
+        state.instability = instability;
+        state.displaced = displaced;
+        state.splintStability = splintStability;
+        state.reduced = reduced;
+        return state;
     }
 
     public int getGrade() {

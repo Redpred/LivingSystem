@@ -1,0 +1,9 @@
+{
+  "id": "livingsystem:nether_heat",
+  "description_zh_cn": "下界炽热群系：持续高温暴露",
+  "category": "THERMAL_HEAT",
+  "trigger": "AREA_OCCUPANCY",
+  "intensity": 0.6,
+  "temperature_delta": 25.0,
+  "biomes": ["minecraft:nether_wastes", "minecraft:basalt_deltas", "minecraft:crimson_forest", "minecraft:warped_forest", "minecraft:soul_sand_valley"]
+}

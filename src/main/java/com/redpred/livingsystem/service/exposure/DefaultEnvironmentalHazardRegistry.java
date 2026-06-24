@@ -1,12 +1,22 @@
 package com.redpred.livingsystem.service.exposure;
 
+import com.redpred.livingsystem.data.EnvironmentalHazardReloadListener;
+import com.redpred.livingsystem.rule.definition.EnvironmentalHazardProfile;
+
+import java.util.List;
+
 /**
- * {@link EnvironmentalHazardRegistry} 默认实现。阶段一无任何环境危害定义。
+ * {@link EnvironmentalHazardRegistry} 默认实现。委托数据包重载监听器持有的当前危害快照。
  */
 public final class DefaultEnvironmentalHazardRegistry implements EnvironmentalHazardRegistry {
 
     @Override
     public int size() {
-        return 0;
+        return EnvironmentalHazardReloadListener.all().size();
+    }
+
+    @Override
+    public List<EnvironmentalHazardProfile> all() {
+        return EnvironmentalHazardReloadListener.all();
     }
 }

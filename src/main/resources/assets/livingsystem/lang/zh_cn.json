@@ -14,5 +14,15 @@
     "livingsystem.body_region.left_arm": "左臂",
     "livingsystem.body_region.right_arm": "右臂",
     "livingsystem.body_region.left_leg": "左腿",
-    "livingsystem.body_region.right_leg": "右腿"
+    "livingsystem.body_region.right_leg": "右腿",
+
+    "item.livingsystem.medical_supply": "医疗物资",
+    "item.livingsystem.bandage": "绷带",
+    "item.livingsystem.hemostatic_gauze": "止血纱布",
+    "item.livingsystem.tourniquet": "止血带",
+    "item.livingsystem.splint": "夹板",
+    "item.livingsystem.suture_kit": "缝合包",
+    "item.livingsystem.antiseptic": "消毒剂",
+    "item.livingsystem.painkiller": "止痛药",
+    "item.livingsystem.gas_mask": "防毒面具"
 }

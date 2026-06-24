@@ -10,10 +10,24 @@ import com.redpred.livingsystem.service.death.DeathConditionResolver;
 import com.redpred.livingsystem.service.death.DeathReportService;
 import com.redpred.livingsystem.service.death.DefaultDeathConditionResolver;
 import com.redpred.livingsystem.service.death.DefaultDeathReportService;
+import com.redpred.livingsystem.service.examination.DefaultMedicalExaminationService;
+import com.redpred.livingsystem.service.examination.DefaultMedicalObservationRegistry;
+import com.redpred.livingsystem.service.examination.MedicalExaminationService;
+import com.redpred.livingsystem.service.examination.MedicalObservationRegistry;
+import com.redpred.livingsystem.service.exposure.DefaultEnvironmentalExposureSampler;
+import com.redpred.livingsystem.service.exposure.DefaultEnvironmentalHazardRegistry;
+import com.redpred.livingsystem.service.exposure.DefaultExposureAccumulatorService;
+import com.redpred.livingsystem.service.exposure.EnvironmentalExposureSampler;
+import com.redpred.livingsystem.service.exposure.EnvironmentalHazardRegistry;
+import com.redpred.livingsystem.service.exposure.ExposureAccumulatorService;
 import com.redpred.livingsystem.service.hit.DefaultHitLocationService;
 import com.redpred.livingsystem.service.hit.HitLocationService;
 import com.redpred.livingsystem.service.physiology.DefaultPhysiologyEngine;
 import com.redpred.livingsystem.service.physiology.PhysiologyEngine;
+import com.redpred.livingsystem.service.protection.DefaultProtectionResolver;
+import com.redpred.livingsystem.service.protection.ProtectionResolver;
+import com.redpred.livingsystem.service.recovery.DefaultRecoveryEngine;
+import com.redpred.livingsystem.service.recovery.RecoveryEngine;
 import com.redpred.livingsystem.service.resource.DefaultVanillaResourceBridge;
 import com.redpred.livingsystem.service.resource.VanillaResourceBridge;
 import com.redpred.livingsystem.service.structure.DefaultStructureDamageService;
@@ -22,6 +36,12 @@ import com.redpred.livingsystem.service.symptom.DefaultGameplayEffectAggregator;
 import com.redpred.livingsystem.service.symptom.DefaultSymptomEngine;
 import com.redpred.livingsystem.service.symptom.GameplayEffectAggregator;
 import com.redpred.livingsystem.service.symptom.SymptomEngine;
+import com.redpred.livingsystem.service.treatment.ConsumableEffectService;
+import com.redpred.livingsystem.service.treatment.DefaultConsumableEffectService;
+import com.redpred.livingsystem.service.treatment.DefaultMedicationService;
+import com.redpred.livingsystem.service.treatment.DefaultTreatmentService;
+import com.redpred.livingsystem.service.treatment.MedicationService;
+import com.redpred.livingsystem.service.treatment.TreatmentService;
 
 /**
  * 简易服务定位器（阶段二）。持有各领域服务的默认实现单例，供事件接入层与桥接器编排调用。
@@ -41,6 +61,16 @@ public final class LivingServices {
     public static final DeathConditionResolver DEATH = new DefaultDeathConditionResolver();
     public static final DeathReportService DEATH_REPORT = new DefaultDeathReportService();
     public static final VanillaResourceBridge VANILLA_BRIDGE = new DefaultVanillaResourceBridge();
+    public static final TreatmentService TREATMENT = new DefaultTreatmentService();
+    public static final MedicationService MEDICATION = new DefaultMedicationService();
+    public static final ConsumableEffectService CONSUMABLE = new DefaultConsumableEffectService();
+    public static final RecoveryEngine RECOVERY = new DefaultRecoveryEngine();
+    public static final MedicalExaminationService EXAMINATION = new DefaultMedicalExaminationService();
+    public static final MedicalObservationRegistry OBSERVATIONS = new DefaultMedicalObservationRegistry();
+    public static final ExposureAccumulatorService EXPOSURE = new DefaultExposureAccumulatorService();
+    public static final EnvironmentalExposureSampler EXPOSURE_SAMPLER = new DefaultEnvironmentalExposureSampler();
+    public static final EnvironmentalHazardRegistry HAZARDS = new DefaultEnvironmentalHazardRegistry();
+    public static final ProtectionResolver PROTECTION = new DefaultProtectionResolver();
     public static final PlayerHealthRepository REPOSITORY = new DefaultPlayerHealthRepository();
 
     private LivingServices() {
