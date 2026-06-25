@@ -30,9 +30,16 @@ public class DamageProfileReloadListener extends SimpleJsonResourceReloadListene
 
     /** 按 DamageType msgId（小写）索引，供伤害管线直接查询。 */
     private static volatile Map<String, DamageProfile> byMsgId = Map.of();
+    /** 其它模组经公开 API 注册的伤害画像（代码兜底，重载时与数据包合并，数据包同 ID 覆盖之）。 */
+    private static final Map<ResourceLocation, DamageProfile> CODE_REGISTERED = new java.util.concurrent.ConcurrentHashMap<>();
 
     public DamageProfileReloadListener() {
         super(GSON, DIRECTORY);
+    }
+
+    /** 供公开 API 在代码中注册伤害画像；下次数据包重载时并入（数据包同 ID 优先）。 */
+    public static void registerFromCode(DamageProfile profile) {
+        CODE_REGISTERED.put(profile.id(), profile);
     }
 
     /** 按 DamageType 的 msgId 获取伤害画像；无对应配置返回 {@code null}（调用方使用通用默认）。 */
@@ -45,6 +52,11 @@ public class DamageProfileReloadListener extends SimpleJsonResourceReloadListene
     protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         Map<String, DamageProfile> loaded = new HashMap<>();
         Map<ResourceLocation, DamageProfile> byId = new HashMap<>();
+        // 先并入代码注册（兜底），随后数据包同 ID 覆盖。
+        CODE_REGISTERED.forEach((id, profile) -> {
+            loaded.put(id.getPath().toLowerCase(), profile);
+            byId.put(id, profile);
+        });
         object.forEach((location, json) -> DamageProfile.CODEC
                 .parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(error -> LOGGER.error("Failed to parse damage_profile {}: {}", location, error))

@@ -24,8 +24,12 @@ import com.redpred.livingsystem.service.hit.DefaultHitLocationService;
 import com.redpred.livingsystem.service.hit.HitLocationService;
 import com.redpred.livingsystem.service.physiology.DefaultPhysiologyEngine;
 import com.redpred.livingsystem.service.physiology.PhysiologyEngine;
+import com.redpred.livingsystem.service.pathogen.DefaultPathogenEngine;
+import com.redpred.livingsystem.service.pathogen.PathogenEngine;
 import com.redpred.livingsystem.service.protection.DefaultProtectionResolver;
 import com.redpred.livingsystem.service.protection.ProtectionResolver;
+import com.redpred.livingsystem.service.radiation.DefaultRadiationEngine;
+import com.redpred.livingsystem.service.radiation.RadiationEngine;
 import com.redpred.livingsystem.service.recovery.DefaultRecoveryEngine;
 import com.redpred.livingsystem.service.recovery.RecoveryEngine;
 import com.redpred.livingsystem.service.resource.DefaultVanillaResourceBridge;
@@ -36,6 +40,8 @@ import com.redpred.livingsystem.service.symptom.DefaultGameplayEffectAggregator;
 import com.redpred.livingsystem.service.symptom.DefaultSymptomEngine;
 import com.redpred.livingsystem.service.symptom.GameplayEffectAggregator;
 import com.redpred.livingsystem.service.symptom.SymptomEngine;
+import com.redpred.livingsystem.service.toxin.DefaultToxinEngine;
+import com.redpred.livingsystem.service.toxin.ToxinEngine;
 import com.redpred.livingsystem.service.treatment.ConsumableEffectService;
 import com.redpred.livingsystem.service.treatment.DefaultConsumableEffectService;
 import com.redpred.livingsystem.service.treatment.DefaultMedicationService;
@@ -71,6 +77,9 @@ public final class LivingServices {
     public static final EnvironmentalExposureSampler EXPOSURE_SAMPLER = new DefaultEnvironmentalExposureSampler();
     public static final EnvironmentalHazardRegistry HAZARDS = new DefaultEnvironmentalHazardRegistry();
     public static final ProtectionResolver PROTECTION = new DefaultProtectionResolver();
+    public static final ToxinEngine TOXIN = new DefaultToxinEngine();
+    public static final PathogenEngine PATHOGEN = new DefaultPathogenEngine();
+    public static final RadiationEngine RADIATION = new DefaultRadiationEngine();
     public static final PlayerHealthRepository REPOSITORY = new DefaultPlayerHealthRepository();
 
     private LivingServices() {

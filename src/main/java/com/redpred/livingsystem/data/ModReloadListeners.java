@@ -20,5 +20,8 @@ public final class ModReloadListeners {
         event.addListener(new TreatmentDefinitionReloadListener());
         event.addListener(new EnvironmentalHazardReloadListener());
         event.addListener(new ProtectionProfileReloadListener());
+        event.addListener(new ToxinDefinitionReloadListener());
+        event.addListener(new PathogenDefinitionReloadListener());
+        event.addListener(new RadiationDefinitionReloadListener());
     }
 }

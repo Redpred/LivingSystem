@@ -24,5 +24,8 @@
     "item.livingsystem.suture_kit": "缝合包",
     "item.livingsystem.antiseptic": "消毒剂",
     "item.livingsystem.painkiller": "止痛药",
-    "item.livingsystem.gas_mask": "防毒面具"
+    "item.livingsystem.gas_mask": "防毒面具",
+
+    "block.livingsystem.medical_station": "医疗工作站",
+    "container.livingsystem.medical_station": "医疗工作站"
 }

@@ -1,0 +1,8 @@
+{
+  "id": "livingsystem:gamma",
+  "description_zh_cn": "伽马辐射：穿透性强，累计剂量超阈值后引发恶心与虚弱，高剂量致死",
+  "type": "GAMMA",
+  "symptom_threshold": 0.3,
+  "lethal_dose": 1.0,
+  "decay_rate": 0.005
+}

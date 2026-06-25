@@ -26,9 +26,15 @@ public class ProtectionProfileReloadListener extends SimpleJsonResourceReloadLis
 
     /** 按匹配物品 ID 索引的防护定义（一个物品命中一个定义）。 */
     private static volatile Map<ResourceLocation, ProtectionProfile> byItem = Map.of();
+    private static final java.util.List<ProtectionProfile> CODE_REGISTERED = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     public ProtectionProfileReloadListener() {
         super(GSON, DIRECTORY);
+    }
+
+    /** 供公开 API 在代码中注册防护画像；下次数据包重载时并入（数据包同物品优先）。 */
+    public static void registerFromCode(ProtectionProfile profile) {
+        CODE_REGISTERED.add(profile);
     }
 
     /** 按物品 ID 获取防护定义；无匹配返回 {@code null}。 */
@@ -39,6 +45,12 @@ public class ProtectionProfileReloadListener extends SimpleJsonResourceReloadLis
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         Map<ResourceLocation, ProtectionProfile> byItemMap = new HashMap<>();
+        // 先并入代码注册（兜底），随后数据包同物品覆盖。
+        CODE_REGISTERED.forEach(profile -> {
+            if (profile.enabled()) {
+                profile.items().forEach(item -> byItemMap.put(item, profile));
+            }
+        });
         object.forEach((location, json) -> ProtectionProfile.CODEC
                 .parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(error -> LOGGER.error("解析防护定义 {} 失败：{}", location, error))

@@ -1,0 +1,9 @@
+{
+  "id": "livingsystem:wither_toxin",
+  "description_zh_cn": "凋零毒素：缓慢吸收并积累，造成恶心与虚弱，高剂量可致死",
+  "default_route": "INHALATION",
+  "absorption_rate": 0.25,
+  "metabolism_rate": 0.04,
+  "potency": 1.2,
+  "lethal_threshold": 0.95
+}

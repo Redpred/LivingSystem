@@ -1,0 +1,11 @@
+{
+  "id": "livingsystem:wound_infection",
+  "description_zh_cn": "伤口感染：开放污染伤口继发的细菌感染，潜伏后引发发热与虚弱",
+  "type": "BACTERIA",
+  "incubation_ticks": 1200,
+  "replication_rate": 0.06,
+  "virulence": 0.9,
+  "immune_clear_rate": 0.05,
+  "lethal_load": 0.95,
+  "wound_infection_chance": 0.02
+}

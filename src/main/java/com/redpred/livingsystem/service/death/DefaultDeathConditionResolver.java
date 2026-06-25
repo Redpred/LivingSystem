@@ -28,8 +28,64 @@ public final class DefaultDeathConditionResolver implements DeathConditionResolv
         if (p.getOxygenDebt() >= 1.0F) {
             return true;
         }
+        // 毒素致死：任一毒素的严重度达到其致死阈值。
+        if (lethalToxin(data)) {
+            return true;
+        }
+        // 感染致死：任一感染的病原体载量达到其致死载量。
+        if (lethalInfection(data)) {
+            return true;
+        }
+        // 辐射致死：任一辐射暴露的累计剂量达到其致死剂量。
+        if (lethalRadiation(data)) {
+            return true;
+        }
         return destroyed(data, BodyRegion.CHEST, AnatomicalStructure.HEART)
                 || destroyed(data, BodyRegion.HEAD_NECK, AnatomicalStructure.BRAIN);
+    }
+
+    /** 任一活动毒素的严重度达到其致死阈值即视为毒素致死。 */
+    private static boolean lethalToxin(PlayerHealthData data) {
+        for (com.redpred.livingsystem.domain.effect.HealthEffectInstance effect : data.activeEffects().values()) {
+            if (effect instanceof com.redpred.livingsystem.domain.effect.ToxicExposureState toxic && toxic.active()) {
+                com.redpred.livingsystem.rule.definition.ToxinDefinition def =
+                        com.redpred.livingsystem.data.ToxinDefinitionReloadListener.get(toxic.getToxinId());
+                if (def != null && def.lethalThreshold() > 0.0F && toxic.severity() >= def.lethalThreshold()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** 任一活动感染的病原体载量达到其致死载量即视为感染致死。 */
+    private static boolean lethalInfection(PlayerHealthData data) {
+        for (com.redpred.livingsystem.domain.effect.HealthEffectInstance effect : data.activeEffects().values()) {
+            if (effect instanceof com.redpred.livingsystem.domain.effect.PathogenState ps && ps.active()) {
+                com.redpred.livingsystem.rule.definition.PathogenDefinition def =
+                        com.redpred.livingsystem.data.PathogenDefinitionReloadListener.get(ps.getPathogenId());
+                if (def != null && def.lethalLoad() > 0.0F && ps.getPathogenLoad() >= def.lethalLoad()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** 任一活动辐射暴露的累计剂量达到其致死剂量即视为辐射致死。 */
+    private static boolean lethalRadiation(PlayerHealthData data) {
+        for (com.redpred.livingsystem.domain.effect.HealthEffectInstance effect : data.activeEffects().values()) {
+            if (effect instanceof com.redpred.livingsystem.domain.effect.RadiationExposureState rad && rad.active()) {
+                com.redpred.livingsystem.rule.definition.RadiationDefinition def =
+                        com.redpred.livingsystem.data.RadiationDefinitionReloadListener.get(
+                                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                                        "livingsystem", rad.getRadiationType().name().toLowerCase(java.util.Locale.ROOT)));
+                if (def != null && def.lethalDose() > 0.0F && rad.getAccumulatedDose() >= def.lethalDose()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean destroyed(PlayerHealthData data, BodyRegion region, AnatomicalStructure structure) {

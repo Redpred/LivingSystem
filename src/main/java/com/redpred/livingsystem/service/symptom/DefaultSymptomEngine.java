@@ -8,6 +8,7 @@ import com.redpred.livingsystem.domain.physiology.PhysiologyState;
 import com.redpred.livingsystem.domain.symptom.SymptomSnapshot;
 import com.redpred.livingsystem.domain.symptom.SymptomState;
 import com.redpred.livingsystem.domain.symptom.SymptomTier;
+import com.redpred.livingsystem.service.LivingServices;
 import com.redpred.livingsystem.service.physiology.DefaultPhysiologyEngine;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -77,6 +78,26 @@ public final class DefaultSymptomEngine implements SymptomEngine {
             symptoms.add(symptom("fever", Mth.clamp((coreTemp - 38.5F) / 3.0F, 0.0F, 1.0F), Optional.empty()));
         } else if (coreTemp < 35.5F) {
             symptoms.add(symptom("chills", Mth.clamp((35.5F - coreTemp) / 5.0F, 0.0F, 1.0F), Optional.empty()));
+        }
+
+        // 毒素负荷 → 恶心（伴随轻度虚弱），强度随负荷上升。
+        float toxinBurden = LivingServices.TOXIN.aggregateBurden(data);
+        if (toxinBurden > 0.1F) {
+            symptoms.add(symptom("nausea", toxinBurden, Optional.empty()));
+        }
+
+        // 感染负担 → 发热与虚弱。
+        float infectionBurden = LivingServices.PATHOGEN.aggregateBurden(data);
+        if (infectionBurden > 0.15F) {
+            symptoms.add(symptom("fever", infectionBurden, Optional.empty()));
+            symptoms.add(symptom("weakness", infectionBurden, Optional.empty()));
+        }
+
+        // 辐射生物效应 → 恶心与虚弱。
+        float radiationBurden = LivingServices.RADIATION.aggregateBurden(data);
+        if (radiationBurden > 0.1F) {
+            symptoms.add(symptom("nausea", radiationBurden, Optional.empty()));
+            symptoms.add(symptom("weakness", radiationBurden, Optional.empty()));
         }
 
         return new SymptomSnapshot(List.copyOf(symptoms), 0L);

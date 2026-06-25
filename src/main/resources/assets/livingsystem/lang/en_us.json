@@ -24,5 +24,8 @@
     "item.livingsystem.suture_kit": "Suture Kit",
     "item.livingsystem.antiseptic": "Antiseptic",
     "item.livingsystem.painkiller": "Painkiller",
-    "item.livingsystem.gas_mask": "Gas Mask"
+    "item.livingsystem.gas_mask": "Gas Mask",
+
+    "block.livingsystem.medical_station": "Medical Station",
+    "container.livingsystem.medical_station": "Medical Station"
 }

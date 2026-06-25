@@ -1,18 +1,19 @@
 package com.redpred.livingsystem.content.menu;
 
 import com.redpred.livingsystem.bootstrap.ModContent;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
- * 菜单类型注册（见开发文档 §16.2）。阶段一注册一个代表性占位类型。
+ * 菜单类型注册（见开发文档 §16.2）。医疗工作站菜单使用带 {@code RegistryFriendlyByteBuf} 的工厂，
+ * 以便客户端按方块位置打开。
  */
 public final class MedicalMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<MedicalStationMenu>> MEDICAL_STATION =
             ModContent.MENUS.register("medical_station", () ->
-                    new MenuType<>(MedicalStationMenu::new, FeatureFlags.DEFAULT_FLAGS));
+                    IMenuTypeExtension.create(MedicalStationMenu::new));
 
     private MedicalMenus() {
     }

@@ -37,6 +37,8 @@ public final class LivingSystemMod {
         ModDataComponents.register(modBus);
         ModPayloads.register(modBus);
         ModConfigs.register(container);
-        LOGGER.info("LivingSystem 已构造（架构重建·阶段一）。");
+        com.redpred.livingsystem.api.LivingSystemApiHolder.set(
+                new com.redpred.livingsystem.api.internal.DefaultLivingSystemApi());
+        LOGGER.info("LivingSystem 已构造。");
     }
 }

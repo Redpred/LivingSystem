@@ -49,6 +49,19 @@ public final class DefaultEnvironmentalExposureSampler implements EnvironmentalE
                 ambient += hazard.temperatureDelta();
             } else if (hazard.category() == ExposureCategory.RESPIRATORY) {
                 respiratoryHazard = Math.max(respiratoryHazard, hazard.intensity());
+            } else if (hazard.category() == ExposureCategory.TOXIN) {
+                // 毒气环境：把强度作为剂量注入毒素药代（危害 ID 约定对应同名毒素定义）。
+                LivingServices.TOXIN.expose(player, hazard.id(),
+                        com.redpred.livingsystem.domain.effect.ExposureRoute.INHALATION, hazard.intensity() * 0.5F);
+            } else if (hazard.category() == ExposureCategory.PATHOGEN) {
+                // 病原体环境：以危害 ID 为稳定来源键发起感染（去重避免每刻重复创建）。
+                LivingServices.PATHOGEN.infect(player, hazard.id(),
+                        com.redpred.livingsystem.domain.effect.TransmissionRoute.AIRBORNE,
+                        java.util.UUID.nameUUIDFromBytes(hazard.id().toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            } else if (hazard.category() == ExposureCategory.RADIATION) {
+                // 辐射环境：按强度累积伽马剂量（剂量经防护辐射屏蔽减免在引擎外不处理，最小实现用伽马）。
+                LivingServices.RADIATION.irradiate(player,
+                        com.redpred.livingsystem.domain.effect.RadiationType.GAMMA, hazard.intensity() * 0.05F);
             }
         }
 

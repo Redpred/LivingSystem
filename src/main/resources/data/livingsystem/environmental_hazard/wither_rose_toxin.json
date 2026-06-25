@@ -1,0 +1,8 @@
+{
+  "id": "livingsystem:wither_toxin",
+  "description_zh_cn": "站在凋零玫瑰上：经接触吸入凋零毒素",
+  "category": "TOXIN",
+  "trigger": "CONTACT",
+  "intensity": 0.4,
+  "blocks": ["minecraft:wither_rose"]
+}

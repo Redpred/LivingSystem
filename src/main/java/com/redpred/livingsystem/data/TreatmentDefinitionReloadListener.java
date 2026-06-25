@@ -31,9 +31,15 @@ public class TreatmentDefinitionReloadListener extends SimpleJsonResourceReloadL
 
     /** 按定义 ID 索引，供治疗服务直接查询。 */
     private static volatile Map<ResourceLocation, TreatmentDefinition> byId = Map.of();
+    private static final Map<ResourceLocation, TreatmentDefinition> CODE_REGISTERED = new java.util.concurrent.ConcurrentHashMap<>();
 
     public TreatmentDefinitionReloadListener() {
         super(GSON, DIRECTORY);
+    }
+
+    /** 供公开 API 在代码中注册治疗定义；下次数据包重载时并入（数据包同 ID 优先）。 */
+    public static void registerFromCode(TreatmentDefinition definition) {
+        CODE_REGISTERED.put(definition.id(), definition);
     }
 
     /** 按定义 ID 获取治疗定义；不存在返回 {@code null}。 */
@@ -45,6 +51,7 @@ public class TreatmentDefinitionReloadListener extends SimpleJsonResourceReloadL
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         Map<ResourceLocation, TreatmentDefinition> loaded = new HashMap<>();
+        loaded.putAll(CODE_REGISTERED);
         object.forEach((location, json) -> TreatmentDefinition.CODEC
                 .parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(error -> LOGGER.error("解析治疗定义 {} 失败：{}", location, error))

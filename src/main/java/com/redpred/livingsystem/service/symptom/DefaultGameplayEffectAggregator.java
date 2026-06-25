@@ -28,6 +28,7 @@ public final class DefaultGameplayEffectAggregator implements GameplayEffectAggr
         boolean jump = true;
         float sway = 0.0F;
         float heartbeat = 0.0F;
+        float vignette = 0.0F;
         boolean unconscious = false;
 
         for (SymptomState s : symptoms.symptoms()) {
@@ -96,6 +97,18 @@ public final class DefaultGameplayEffectAggregator implements GameplayEffectAggr
                     move *= 1.0F - 0.2F * i;
                     attackSpeed *= 1.0F - 0.2F * i;
                 }
+                case "nausea" -> {
+                    // 恶心：乏力与不适，移动轻微下降并加重画面暗角与镜头摇晃。
+                    move *= 1.0F - 0.15F * i;
+                    sway += 0.25F * i;
+                    vignette += 0.3F * i;
+                }
+                case "weakness" -> {
+                    // 虚弱：移动与攻速下降、操作稍不稳。
+                    move *= 1.0F - 0.25F * i;
+                    attackSpeed *= 1.0F - 0.25F * i;
+                    mainHandStability *= 1.0F - 0.2F * i;
+                }
                 default -> {
                 }
             }
@@ -111,7 +124,7 @@ public final class DefaultGameplayEffectAggregator implements GameplayEffectAggr
                 sprint,
                 jump,
                 Mth.clamp(sway, 0.0F, 1.0F),
-                0.0F,
+                Mth.clamp(vignette, 0.0F, 1.0F),
                 0.0F,
                 0.0F,
                 Mth.clamp(heartbeat, 0.0F, 1.0F),

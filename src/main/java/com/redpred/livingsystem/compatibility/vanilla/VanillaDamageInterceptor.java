@@ -98,11 +98,15 @@ public final class VanillaDamageInterceptor {
         LivingServices.PHYSIOLOGY.runCycle(player, data, sampleActivity(player));
         LivingServices.EXPOSURE_SAMPLER.sample(player);
         LivingServices.MEDICATION.tick(player, data);
+        LivingServices.TOXIN.tick(player, data);
+        LivingServices.PATHOGEN.tick(player, data);
+        LivingServices.RADIATION.tick(player, data);
         LivingServices.RECOVERY.tick(player, data);
 
         if (LivingServices.DEATH.shouldDie(player, data)) {
             LivingServices.DEATH_REPORT.buildReport(player, data).ifPresent(report -> {
                 data.deathReports().add(report);
+                com.redpred.livingsystem.api.internal.ApiEventBus.fireDeathReport(report);
                 String cause = report.timeline().isEmpty() ? "生理崩溃" : report.timeline().get(0).descriptionZhCn();
                 player.displayClientMessage(Component.literal("§c[生命系统] " + cause), false);
                 PacketDistributor.sendToPlayer(player, new DeathReportPayload(report.reportId()));
